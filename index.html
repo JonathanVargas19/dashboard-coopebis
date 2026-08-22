@@ -9,6 +9,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --azul-primario:#012E3F; --azul-secundario:#297780; --azul-comp1:#0273BF;
@@ -157,13 +159,29 @@
 <body>
 <div class="app">
   <div id="lockScreen" style="display:none;min-height:70vh;align-items:center;justify-content:center;flex-direction:column;">
-    <div style="background:var(--panel);border:1px solid var(--borde);border-radius:16px;padding:36px 32px;max-width:360px;width:100%;text-align:center;">
-      <img id="logoLock" src="" alt="COOPEBIS" style="height:70px;margin-bottom:18px;">
-      <h1 style="font-size:16px;margin:0 0 6px;">Acceso al Dashboard</h1>
-      <p style="font-size:12px;color:var(--texto-sec);margin:0 0 22px;">Ingresa la contraseña para continuar.</p>
-      <input type="password" id="lockPwd" placeholder="Contraseña" style="width:100%;text-align:center;letter-spacing:3px;margin-bottom:14px;">
-      <button id="btnEntrarLock" class="refresh-btn" style="width:100%;">Entrar</button>
-      <div id="lockMsg" style="font-size:11.5px;color:#E0555B;margin-top:12px;min-height:16px;"></div>
+    <div style="background:#FFFFFF;border-radius:16px;padding:36px 32px;max-width:380px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.35);">
+      <div style="background:var(--azul-primario);border-radius:14px;padding:14px 22px;display:inline-block;margin-bottom:20px;">
+        <img id="logoLock" src="" alt="COOPEBIS" style="height:56px;display:block;">
+      </div>
+
+      <div id="userLockForm">
+        <h1 style="font-size:16px;margin:0 0 6px;color:var(--azul-primario);">Acceso Panel Administrativo</h1>
+        <p style="font-size:12px;color:#5c6b73;margin:0 0 22px;">Ingresa tu nombre y la contraseña para continuar.</p>
+        <input type="text" id="lockNombre" placeholder="Nombre completo" style="width:100%;margin-bottom:12px;background:#F2F5F7;color:#012E3F;border:1px solid #D6DEE2;border-radius:8px;padding:11px 14px;font-family:'Poppins';font-size:13px;">
+        <input type="password" id="lockPwd" placeholder="Contraseña" style="width:100%;text-align:center;letter-spacing:3px;margin-bottom:14px;background:#F2F5F7;color:#012E3F;border:1px solid #D6DEE2;border-radius:8px;padding:11px 14px;font-family:'Poppins';font-size:13px;">
+        <button id="btnEntrarLock" class="refresh-btn" style="width:100%;">Entrar</button>
+        <div id="lockMsg" style="font-size:11.5px;color:#E0555B;margin-top:12px;min-height:16px;"></div>
+        <div id="toAdminLock" style="font-size:11px;color:#5c6b73;margin-top:16px;cursor:pointer;text-decoration:underline;">¿Eres el administrador? Ingresa aquí</div>
+      </div>
+
+      <div id="adminLockForm" style="display:none;">
+        <h1 style="font-size:16px;margin:0 0 6px;color:var(--azul-primario);">Acceso administrador</h1>
+        <p style="font-size:12px;color:#5c6b73;margin:0 0 22px;">Ingresa la contraseña de administrador.</p>
+        <input type="password" id="lockPwdAdmin" placeholder="Contraseña de administrador" style="width:100%;text-align:center;letter-spacing:2px;margin-bottom:14px;background:#F2F5F7;color:#012E3F;border:1px solid #D6DEE2;border-radius:8px;padding:11px 14px;font-family:'Poppins';font-size:13px;">
+        <button id="btnEntrarAdminLock" class="refresh-btn" style="width:100%;">Entrar</button>
+        <div id="lockMsgAdmin" style="font-size:11.5px;color:#E0555B;margin-top:12px;min-height:16px;"></div>
+        <div id="toUserLock" style="font-size:11px;color:#5c6b73;margin-top:16px;cursor:pointer;text-decoration:underline;">Volver al acceso normal</div>
+      </div>
     </div>
   </div>
 
@@ -177,6 +195,7 @@
       <button class="nav-btn" data-view="home">Inicio</button>
       <button class="nav-btn" data-view="colocacion">Base General / Colocación</button>
       <button class="nav-btn" data-view="gestion">Gestión Externos</button>
+      <button class="nav-btn" data-view="admin" id="navAdmin" style="display:none;">Panel Admin</button>
     </div>
     <div class="right-actions">
       <div style="position:relative;">
@@ -188,7 +207,7 @@
         </div>
       </div>
       <button class="mobile-toggle" id="btnMobile">Ver en móvil</button>
-      <button class="share-btn" id="btnBloquear" style="border-color:#E0555B;color:#E0555B;">Bloquear</button>
+      <button class="share-btn" id="btnBloquear" style="border-color:#E0555B;color:#E0555B;">Cerrar sesión</button>
     </div>
   </div>
 
@@ -319,6 +338,15 @@
     </div>
   </div>
 
+  <div class="view" id="view-admin">
+    <div class="card full-width">
+      <div class="card-title">Usuarios que han ingresado <span class="tag">En vivo</span></div>
+      <div class="table-scroll full">
+        <table id="tableSesiones"><thead><tr><th>Nombre</th><th>Fecha de ingreso</th><th>Estado</th><th>Acción</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+
   <div class="signature">Creado por Jonathan Vargas</div>
   </div>
 </div>
@@ -339,29 +367,151 @@ document.querySelectorAll('.nav-btn').forEach(function(b){b.addEventListener('cl
 document.querySelectorAll('[data-goto]').forEach(function(el){el.addEventListener('click',function(){goTo(el.dataset.goto);});});
 goTo('home');
 
-/* ===== Acceso por contraseña (solo del lado del navegador, sin servidor) ===== */
+/* ===== Acceso: nombre + contraseña (usuarios) / contraseña admin — con Firebase para monitoreo en vivo ===== */
 const ACCESS_PASSWORD = "112101";
-function mostrarApp(){ document.getElementById('lockScreen').style.display='none'; document.getElementById('appContent').style.display='block'; }
+const ADMIN_PASSWORD = "Johnalexvgs*";
+
+// CONFIGURA AQUI los datos de tu proyecto de Firebase (gratis, ver LEEME.md)
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_PROYECTO.firebaseapp.com",
+  projectId: "TU_PROYECTO",
+  storageBucket: "TU_PROYECTO.appspot.com",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "TU_APP_ID"
+};
+let db = null;
+try{ firebase.initializeApp(firebaseConfig); db = firebase.firestore(); }catch(e){ console.error('Firebase no configurado:', e); }
+
+let ES_ADMIN = false;
+let miSessionToken = null;
+let miSessionUnsub = null;
+let sesionesUnsub = null;
+
+function generarToken(){ return 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2,10); }
+
+async function crearSesion(nombre){
+  const token = generarToken();
+  await db.collection('sesiones').doc(token).set({
+    nombre: nombre,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    activo: true
+  });
+  return token;
+}
+function escucharMiSesion(token){
+  if(!db) return;
+  if(miSessionUnsub) miSessionUnsub();
+  miSessionUnsub = db.collection('sesiones').doc(token).onSnapshot(function(doc){
+    if(!doc.exists || doc.data().activo === false){
+      sessionStorage.removeItem('coopebis_token');
+      sessionStorage.removeItem('coopebis_unlocked');
+      sessionStorage.removeItem('coopebis_nombre');
+      location.reload();
+    }
+  });
+}
+async function cerrarMiSesionFirestore(){
+  if(db && miSessionToken){
+    try{ await db.collection('sesiones').doc(miSessionToken).update({activo:false}); }catch(e){}
+  }
+}
+function escucharSesiones(){
+  if(!db || sesionesUnsub) return;
+  sesionesUnsub = db.collection('sesiones').orderBy('timestamp','desc').limit(200).onSnapshot(function(snap){
+    const rows = [];
+    snap.forEach(function(doc){ rows.push(Object.assign({id:doc.id}, doc.data())); });
+    document.querySelector('#tableSesiones tbody').innerHTML = rows.map(function(r){
+      const fecha = (r.timestamp && r.timestamp.toDate) ? r.timestamp.toDate().toLocaleString('es-CO') : '—';
+      const estado = r.activo ? '<span class="pill aprob">Activa</span>' : '<span class="pill rechaz">Cerrada</span>';
+      const btn = r.activo ? '<button class="pdf-btn" style="padding:5px 10px;font-size:10.5px;background:#E0555B;" onclick="cerrarSesionAjena(\''+r.id+'\')">Cerrar sesión</button>' : '—';
+      return '<tr><td>'+(r.nombre||'')+'</td><td>'+fecha+'</td><td>'+estado+'</td><td>'+btn+'</td></tr>';
+    }).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--texto-sec);">Sin sesiones registradas</td></tr>';
+  }, function(err){
+    document.querySelector('#tableSesiones tbody').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#E0555B;">Firebase no está configurado todavía (ver LEEME.md).</td></tr>';
+  });
+}
+async function cerrarSesionAjena(id){
+  if(!db) return;
+  try{ await db.collection('sesiones').doc(id).update({activo:false}); }catch(e){}
+}
+
+function mostrarApp(){
+  document.getElementById('lockScreen').style.display='none';
+  document.getElementById('appContent').style.display='block';
+  document.getElementById('navAdmin').style.display = ES_ADMIN ? 'inline-block' : 'none';
+  if(ES_ADMIN) escucharSesiones();
+}
 function pedirAcceso(){
-  const guardado = sessionStorage.getItem('coopebis_unlocked');
-  if(guardado === '1'){ mostrarApp(); return; }
+  if(sessionStorage.getItem('coopebis_admin') === '1'){
+    ES_ADMIN = true;
+    mostrarApp();
+    return;
+  }
+  const token = sessionStorage.getItem('coopebis_token');
+  const unlocked = sessionStorage.getItem('coopebis_unlocked');
+  if(token && unlocked === '1'){
+    miSessionToken = token;
+    ES_ADMIN = false;
+    escucharMiSesion(token);
+    mostrarApp();
+    return;
+  }
   document.getElementById('lockScreen').style.display='flex';
   document.getElementById('appContent').style.display='none';
 }
-document.getElementById('btnEntrarLock').addEventListener('click', function(){
+
+document.getElementById('toAdminLock').addEventListener('click', function(){
+  document.getElementById('userLockForm').style.display='none';
+  document.getElementById('adminLockForm').style.display='block';
+});
+document.getElementById('toUserLock').addEventListener('click', function(){
+  document.getElementById('adminLockForm').style.display='none';
+  document.getElementById('userLockForm').style.display='block';
+});
+
+document.getElementById('btnEntrarLock').addEventListener('click', async function(){
+  const nombre = document.getElementById('lockNombre').value.trim();
   const val = document.getElementById('lockPwd').value;
   const msg = document.getElementById('lockMsg');
-  if(val === ACCESS_PASSWORD){
+  if(!nombre){ msg.textContent = 'Escribe tu nombre completo.'; return; }
+  if(val !== ACCESS_PASSWORD){ msg.textContent = 'Contraseña incorrecta.'; return; }
+  if(!db){ msg.textContent = 'Firebase no está configurado (ver LEEME.md).'; return; }
+  msg.textContent = 'Ingresando…';
+  try{
+    const token = await crearSesion(nombre);
+    miSessionToken = token;
+    sessionStorage.setItem('coopebis_token', token);
     sessionStorage.setItem('coopebis_unlocked','1');
+    sessionStorage.setItem('coopebis_nombre', nombre);
+    ES_ADMIN = false;
+    escucharMiSesion(token);
     mostrarApp();
-  } else {
-    msg.textContent = 'Contraseña incorrecta.';
-  }
+  }catch(e){ msg.textContent = 'Error de conexión. Intenta de nuevo.'; }
 });
 document.getElementById('lockPwd').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('btnEntrarLock').click(); });
-document.getElementById('btnBloquear').addEventListener('click', function(){
-  sessionStorage.removeItem('coopebis_unlocked');
-  pedirAcceso();
+document.getElementById('lockNombre').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('btnEntrarLock').click(); });
+
+document.getElementById('btnEntrarAdminLock').addEventListener('click', function(){
+  const val = document.getElementById('lockPwdAdmin').value;
+  const msg = document.getElementById('lockMsgAdmin');
+  if(val !== ADMIN_PASSWORD){ msg.textContent = 'Contraseña de administrador incorrecta.'; return; }
+  sessionStorage.setItem('coopebis_admin','1');
+  ES_ADMIN = true;
+  mostrarApp();
+});
+document.getElementById('lockPwdAdmin').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('btnEntrarAdminLock').click(); });
+
+document.getElementById('btnBloquear').addEventListener('click', async function(){
+  if(ES_ADMIN){
+    sessionStorage.removeItem('coopebis_admin');
+  } else {
+    await cerrarMiSesionFirestore();
+    sessionStorage.removeItem('coopebis_token');
+    sessionStorage.removeItem('coopebis_unlocked');
+    sessionStorage.removeItem('coopebis_nombre');
+  }
+  location.reload();
 });
 pedirAcceso();
 
@@ -567,10 +717,18 @@ function renderColocacion(){
 
   const colores = ['#50D6DD','#D2BB1D','#0273BF','#297780','#7FE6EB','#B08F14'];
 
-  // Desembolso por promotor (barras)
-  const promotoresTodos = Array.from(new Set(rows.map(function(r){return promotorDisplay(r['Promotor']);})));
-  const barData = promotoresTodos.map(function(p){
-    return { p:p, valor: rows.filter(function(r){return promotorDisplay(r['Promotor'])===p;}).reduce(function(s,r){return s+Number(r['Valor Desembolsado']||0);},0) };
+  // Desembolso por promotor (barras) — se agrupa por la columna Pagaré;
+  // si el Pagaré es "Jonathan Alexander Vargas Heredia", se usa el Promotor de esa misma fila
+  function etiquetaPagareOPromotor(r){
+    const pagare = (r['Pagaré']||'').toString().trim();
+    if(pagare.toUpperCase() === 'JONATHAN ALEXANDER VARGAS HEREDIA'){
+      return promotorDisplay(r['Promotor']);
+    }
+    return pagare ? titleCase(pagare) : promotorDisplay(r['Promotor']);
+  }
+  const gruposPagare = Array.from(new Set(rows.map(etiquetaPagareOPromotor)));
+  const barData = gruposPagare.map(function(p){
+    return { p:p, valor: rows.filter(function(r){return etiquetaPagareOPromotor(r)===p;}).reduce(function(s,r){return s+Number(r['Valor Desembolsado']||0);},0) };
   }).sort(function(a,b){return b.valor-a.valor;});
   destroyChart('barPromotorCol');
   charts.barPromotorCol = new Chart(document.getElementById('barPromotorCol'), {
@@ -579,6 +737,8 @@ function renderColocacion(){
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '$'+c.raw+'M';}}}},
       scales:{ x:{grid:{color:'#1E3E55'},ticks:{callback:function(v){return '$'+v+'M';},font:{size:11}}}, y:{grid:{display:false},ticks:{font:{size:11}}} } }
   });
+
+  const promotoresTodos = Array.from(new Set(rows.map(function(r){return promotorDisplay(r['Promotor']);})));
 
   // Pie por oficina
   const porOficina = ['OFICINA PRINCIPAL COOPEBIS','OFICINA CENTRO COOPEBIS','EXTERNOS'].map(function(of){
