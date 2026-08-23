@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -240,6 +241,7 @@
       <div class="filter-group"><label>Mes</label><select id="fColMes"></select></div>
       <div class="filter-group"><label>Oficina</label><select id="fColOficina"></select></div>
       <div class="filter-group"><label>Línea de crédito</label><select id="fColLinea"></select></div>
+      <div class="filter-group"><label>Ejecutivo Final</label><select id="fColEjecutivo"></select></div>
       <div class="toolbar">
         <button class="refresh-btn" id="btnLimpiarCol">Quitar filtros</button>
         <button class="refresh-btn" id="btnRefreshCol">Actualizar datos</button>
@@ -253,7 +255,7 @@
     <div class="grid3">
       <div class="card">
         <div class="card-title">Desembolso por promotor <span class="tag" id="gaugeColTag">Oficina</span></div>
-        <div style="position:relative;height:160px;"><canvas id="barPromotorCol"></canvas></div>
+        <div style="position:relative;height:320px;"><canvas id="barPromotorCol"></canvas></div>
       </div>
       <div class="card">
         <div class="card-title">Desembolso por oficina <span class="tag">% y valor</span></div>
@@ -547,10 +549,14 @@ document.addEventListener('click', function(e){
   }
 });
 
-Chart.defaults.font.family="'Poppins'";
-Chart.defaults.font.size = 12.5;
-Chart.defaults.color="#B9C6CC";
-Chart.defaults.devicePixelRatio = 2.5;
+try{
+  Chart.defaults.font.family="'Poppins'";
+  Chart.defaults.font.size = 12.5;
+  Chart.defaults.color="#B9C6CC";
+  Chart.defaults.devicePixelRatio = 2.5;
+  Chart.register(ChartDataLabels);
+  Chart.defaults.set('plugins.datalabels', { display:true, color:'#F2F7FA', font:{ family:"'Poppins'", size:10, weight:'600' } });
+}catch(e){ console.error('Chart.js no cargó correctamente:', e); }
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const CORP_COLORS = ['#50D6DD','#D2BB1D','#0273BF','#297780'];
 const fmtM = v => '$' + (v/1000000).toLocaleString('es-CO',{maximumFractionDigits:1}) + 'M';
@@ -566,7 +572,7 @@ function trimKeys(rows){
 }
 function titleCase(str){
   if(!str) return '';
-  return str.toString().toLowerCase().replace(/(^|\s|ñ)\S/g, c=>c.toUpperCase());
+  return str.toString().toLowerCase().replace(/(^|\s)\S/g, c=>c.toUpperCase());
 }
 function promotorDisplay(raw){
   const s = (raw||'').toString().toUpperCase();
@@ -583,6 +589,31 @@ function asesorDisplayBD(raw){
   if (s.indexOf('PEDRAZA')>-1) return 'Ingrid Pedraza';
   if (s.indexOf('CASTAÑEDA')>-1 || s.indexOf('CASTANEDA')>-1) return 'Camila Castañeda';
   return titleCase(raw);
+}
+/* ===== Unificación de nombres de EJECUTIVO FINAL (mismo nombre, distinto orden de palabras) ===== */
+function construirMapaEjecutivos(colocRows){
+  const grupos = {};
+  (colocRows||[]).forEach(function(r){
+    const raw = (r['EJECUTIVO FINAL']||'').toString().trim();
+    if(!raw) return;
+    const display = titleCase(raw);
+    const key = display.toUpperCase().split(/\s+/).filter(Boolean).sort().join('|');
+    if(!grupos[key]) grupos[key] = {};
+    grupos[key][display] = (grupos[key][display]||0) + Number(r['Valor Desembolsado']||0);
+  });
+  const mapa = {};
+  Object.keys(grupos).forEach(function(key){
+    const variantes = grupos[key];
+    let mejor = null, mejorValor = -1;
+    Object.keys(variantes).forEach(function(v){ if(variantes[v] > mejorValor){ mejorValor = variantes[v]; mejor = v; } });
+    Object.keys(variantes).forEach(function(v){ mapa[v] = mejor; });
+  });
+  return mapa;
+}
+function ejecutivoFinalDisplay(raw){
+  const t = titleCase((raw||'').toString().trim());
+  if(!t) return '';
+  return (DATA.ejecutivoMap && DATA.ejecutivoMap[t]) || t;
 }
 function fillSelect(sel, values, withTodos){
   if(withTodos===undefined) withTodos=true;
@@ -620,6 +651,7 @@ async function cargarDatos(){
     const metasRows = metasSheet ? trimKeys(XLSX.utils.sheet_to_json(metasSheet,{defval:''})) : [];
     DATA.metas = metasRows[0] || {};
     DATA.desMetas = desMetasSheet ? trimKeys(XLSX.utils.sheet_to_json(desMetasSheet,{defval:''})).filter(function(r){return r['OFICINA'];}) : [];
+    DATA.ejecutivoMap = construirMapaEjecutivos(DATA.coloc);
 
     initColFilters();
     initGesFilters();
@@ -643,14 +675,16 @@ function initColFilters(){
   const anios = Array.from(new Set(DATA.coloc.map(function(r){ const d=r['Fec Liquidación']; return d instanceof Date? d.getFullYear(): null; }).filter(Boolean))).sort();
   const oficinas = ['OFICINA PRINCIPAL COOPEBIS','OFICINA CENTRO COOPEBIS','EXTERNOS'];
   const lineas = Array.from(new Set(DATA.coloc.map(function(r){ return r['Línea'] || null; }).filter(Boolean))).sort();
+  const ejecutivos = Array.from(new Set(DATA.coloc.map(function(r){ return r['EJECUTIVO FINAL'] ? ejecutivoFinalDisplay(r['EJECUTIVO FINAL']) : null; }).filter(Boolean))).sort();
 
   fillSelect(document.getElementById('fColAnio'), anios.map(String));
   const selMes = document.getElementById('fColMes');
   selMes.innerHTML='<option value="TODOS">Todos</option>' + MESES.map(function(m,i){return '<option value="'+(i+1)+'">'+m+'</option>';}).join('');
   fillSelect(document.getElementById('fColOficina'), oficinas);
   fillSelect(document.getElementById('fColLinea'), lineas);
+  fillSelect(document.getElementById('fColEjecutivo'), ejecutivos);
 
-  ['fColAnio','fColMes','fColOficina','fColLinea'].forEach(function(id){
+  ['fColAnio','fColMes','fColOficina','fColLinea','fColEjecutivo'].forEach(function(id){
     document.getElementById(id).addEventListener('change', renderColocacion);
   });
   document.getElementById('searchCol').addEventListener('input', renderColocacion);
@@ -661,6 +695,7 @@ function initColFilters(){
     document.getElementById('fColMes').value = 'TODOS';
     document.getElementById('fColOficina').value = 'TODOS';
     document.getElementById('fColLinea').value = 'TODOS';
+    document.getElementById('fColEjecutivo').value = 'TODOS';
     document.getElementById('searchCol').value = '';
     renderColocacion();
   });
@@ -671,6 +706,7 @@ function filtrarColocacion(forOficinaOverride){
   const mes = document.getElementById('fColMes').value;
   const oficina = forOficinaOverride !== undefined ? forOficinaOverride : document.getElementById('fColOficina').value;
   const linea = document.getElementById('fColLinea').value;
+  const ejecutivo = document.getElementById('fColEjecutivo').value;
 
   return DATA.coloc.filter(function(r){
     const d = r['Fec Liquidación'];
@@ -679,6 +715,7 @@ function filtrarColocacion(forOficinaOverride){
     if(mes!=='TODOS' && String(d.getMonth()+1)!==mes) return false;
     if(oficina && oficina!=='TODOS' && r['OFICINA']!==oficina) return false;
     if(linea!=='TODOS' && r['Línea']!==linea) return false;
+    if(ejecutivo!=='TODOS' && ejecutivoFinalDisplay(r['EJECUTIVO FINAL'])!==ejecutivo) return false;
     return true;
   });
 }
@@ -717,25 +754,22 @@ function renderColocacion(){
 
   const colores = ['#50D6DD','#D2BB1D','#0273BF','#297780','#7FE6EB','#B08F14'];
 
-  // Desembolso por promotor (barras) — se agrupa por la columna Pagaré;
-  // si el Pagaré es "Jonathan Alexander Vargas Heredia", se usa el Promotor de esa misma fila
-  function etiquetaPagareOPromotor(r){
-    const pagare = (r['Pagaré']||'').toString().trim();
-    if(pagare.toUpperCase() === 'JONATHAN ALEXANDER VARGAS HEREDIA'){
-      return promotorDisplay(r['Promotor']);
-    }
-    return pagare ? titleCase(pagare) : promotorDisplay(r['Promotor']);
+  // Desembolso por promotor (barras) — agrupado por la columna EJECUTIVO FINAL, ya unificada, muestra a todos
+  function etiquetaEjecutivoFinal(r){
+    const val = (r['EJECUTIVO FINAL']||'').toString().trim();
+    return val ? ejecutivoFinalDisplay(val) : promotorDisplay(r['Promotor']);
   }
-  const gruposPagare = Array.from(new Set(rows.map(etiquetaPagareOPromotor)));
-  const barData = gruposPagare.map(function(p){
-    return { p:p, valor: rows.filter(function(r){return etiquetaPagareOPromotor(r)===p;}).reduce(function(s,r){return s+Number(r['Valor Desembolsado']||0);},0) };
+  const gruposEjecutivo = Array.from(new Set(rows.map(etiquetaEjecutivoFinal)));
+  const barData = gruposEjecutivo.map(function(p){
+    return { p:p, valor: rows.filter(function(r){return etiquetaEjecutivoFinal(r)===p;}).reduce(function(s,r){return s+Number(r['Valor Desembolsado']||0);},0) };
   }).sort(function(a,b){return b.valor-a.valor;});
   destroyChart('barPromotorCol');
   charts.barPromotorCol = new Chart(document.getElementById('barPromotorCol'), {
     type:'bar',
     data:{ labels: barData.map(function(r){return r.p;}), datasets:[{ data: barData.map(function(r){return +(r.valor/1000000).toFixed(1);}), backgroundColor:colores, borderRadius:5, barThickness:16 }]},
-    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '$'+c.raw+'M';}}}},
-      scales:{ x:{grid:{color:'#1E3E55'},ticks:{callback:function(v){return '$'+v+'M';},font:{size:11}}}, y:{grid:{display:false},ticks:{font:{size:11}}} } }
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '$'+c.raw+'M';}}},
+      datalabels:{ color:'#F2F7FA', anchor:'end', align:'right', font:{size:10,weight:'600'}, formatter:function(v){return '$'+v+'M';} } },
+      scales:{ x:{grid:{color:'#1E3E55'},ticks:{callback:function(v){return '$'+v+'M';},font:{size:11}}}, y:{grid:{display:false},ticks:{font:{size:10.5}}} } }
   });
 
   const promotoresTodos = Array.from(new Set(rows.map(function(r){return promotorDisplay(r['Promotor']);})));
@@ -751,7 +785,8 @@ function renderColocacion(){
     data:{ labels: porOficina.map(function(o){return titleCase(o.of) + ' (' + fmtPct(o.valor/totalPie) + ')';}),
       datasets:[{ data: porOficina.map(function(o){return o.valor;}), backgroundColor:['#0273BF','#297780','#50D6DD'], borderColor:'#012E3F', borderWidth:3 }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right',labels:{boxWidth:11,font:{size:12}}},
-      tooltip:{callbacks:{label:function(c){return c.label + ': ' + fmtM(c.raw);}}}} }
+      tooltip:{callbacks:{label:function(c){return c.label + ': ' + fmtM(c.raw);}}},
+      datalabels:{ color:'#012E3F', font:{size:11,weight:'700'}, formatter:function(v){return fmtPct(v/totalPie);} } } }
   });
 
   // Tendencia mensual por promotor
@@ -769,11 +804,10 @@ function renderColocacion(){
   charts.lineCol = new Chart(document.getElementById('lineCol'), {
     type:'line',
     data:{ labels: mesesPresentes.map(function(m){return MESES[m-1];}), datasets: dsLine },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{boxWidth:11,font:{size:11.5}}}},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{boxWidth:11,font:{size:11.5}}},
+      datalabels:{ display:function(ctx){ return ctx.dataset.data[ctx.dataIndex] > 0; }, align:'top', color:function(ctx){return ctx.dataset.borderColor;}, font:{size:8.5,weight:'600'}, formatter:function(v){return v>0? '$'+v+'M':'';} } },
       scales:{ x:{grid:{color:'#1E3E55'},ticks:{font:{size:11.5}}}, y:{grid:{color:'#1E3E55'},ticks:{callback:function(v){return '$'+v+'M';},font:{size:11.5}}} } }
   });
-
-  // Desembolso día a día
   const porDia = {};
   rows.forEach(function(r){
     const d = r['Fec Liquidación'];
@@ -787,7 +821,8 @@ function renderColocacion(){
     type:'line',
     data:{ labels: diasOrdenados.map(function(k){ const p=k.split('-'); return p[2]+'/'+p[1]; }),
       datasets:[{ label:'Desembolsado', data: diasOrdenados.map(function(k){return +(porDia[k]/1000000).toFixed(2);}), borderColor:'#50D6DD', backgroundColor:'#50D6DD20', tension:.3, fill:true, pointRadius:3 }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '$'+c.raw+'M';}}}},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '$'+c.raw+'M';}}},
+      datalabels:{ align:'top', color:'#50D6DD', font:{size:8,weight:'600'}, formatter:function(v){return '$'+v+'M';} } },
       scales:{ x:{grid:{color:'#1E3E55'},ticks:{font:{size:10.5},maxRotation:60}}, y:{grid:{color:'#1E3E55'},ticks:{callback:function(v){return '$'+v+'M';},font:{size:11.5}}} } }
   });
 
@@ -916,7 +951,7 @@ function renderGestion(){
     charts['gaugeExec'+i] = new Chart(document.getElementById('gaugeExec'+i), {
       type:'doughnut',
       data:{ datasets:[{ data:[Math.min(e.pctDesembolsoExternos*100,100), Math.max(100-e.pctDesembolsoExternos*100,0)], backgroundColor:[colores[e.nombre],'#0F2B36'], borderWidth:0 }]},
-      options:{ circumference:180, rotation:270, cutout:'72%', plugins:{legend:{display:false},tooltip:{enabled:false}}, responsive:true, maintainAspectRatio:false }
+      options:{ circumference:180, rotation:270, cutout:'72%', plugins:{legend:{display:false},tooltip:{enabled:false},datalabels:{display:false}}, responsive:true, maintainAspectRatio:false }
     });
   });
 
@@ -934,7 +969,8 @@ function renderGestion(){
           })
         };
       }) },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{boxWidth:11,font:{size:11.5}}}},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{boxWidth:11,font:{size:11.5}}},
+      datalabels:{ display:function(ctx){ return ctx.dataset.data[ctx.dataIndex] > 0; }, align:'top', color:function(ctx){return ctx.dataset.borderColor;}, font:{size:8.5,weight:'600'}, formatter:function(v){return v>0? '$'+v+'M':'';} } },
       scales:{ x:{grid:{color:'#1E3E55'},ticks:{font:{size:11.5}}}, y:{grid:{color:'#1E3E55'},ticks:{callback:function(v){return '$'+v+'M';},font:{size:11.5}}} } }
   });
 
@@ -942,7 +978,8 @@ function renderGestion(){
   charts.rankGes = new Chart(document.getElementById('rankGes'), {
     type:'bar',
     data:{ labels: stats.map(function(s){return s.nombre;}), datasets:[{ data: stats.map(function(s){return +(s.valor/1000000).toFixed(1);}), backgroundColor: stats.map(function(s){return colores[s.nombre];}), borderRadius:6, barThickness:34 }]},
-    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '$'+c.raw+'M';}}}},
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '$'+c.raw+'M';}}},
+      datalabels:{ color:'#F2F7FA', anchor:'end', align:'right', font:{size:11,weight:'600'}, formatter:function(v){return '$'+v+'M';} } },
       scales:{ x:{grid:{color:'#1E3E55'},ticks:{callback:function(v){return '$'+v+'M';},font:{size:11.5}}}, y:{grid:{display:false},ticks:{font:{size:12}}} } }
   });
 
@@ -954,14 +991,16 @@ function renderGestion(){
     type:'doughnut',
     data:{ labels: estadosBD.map(function(e,i){ const tot=rowsBD.length||1; return titleCase(e) + ' (' + fmtPct(conteo[i]/tot) + ')'; }),
       datasets:[{ data: conteo, backgroundColor: estadosBD.map(function(e){return coloresEstado[e]||'#8FA0A8';}), borderColor:'#012E3F', borderWidth:3 }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right',labels:{boxWidth:11,font:{size:11.5}}}} }
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right',labels:{boxWidth:11,font:{size:11.5}}},
+      datalabels:{ color:'#012E3F', font:{size:11,weight:'700'}, formatter:function(v){return v;} } } }
   });
 
   destroyChart('barEstados');
   charts.barEstados = new Chart(document.getElementById('barEstados'), {
     type:'bar',
     data:{ labels: estadosBD.map(function(e){return titleCase(e);}), datasets:[{ data: conteo, backgroundColor: estadosBD.map(function(e){return coloresEstado[e]||'#8FA0A8';}), borderRadius:6, barThickness:26 }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},
+      datalabels:{ anchor:'end', align:'top', color:'#F2F7FA', font:{size:11,weight:'700'}, formatter:function(v){return v;} } },
       scales:{ x:{grid:{color:'#1E3E55'},ticks:{font:{size:11.5}}}, y:{grid:{color:'#1E3E55'},ticks:{font:{size:11.5},stepSize:1} } } }
   });
 
