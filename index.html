@@ -222,10 +222,10 @@
               </select></div>
             <div class="form-field"><label>Forma de pago</label>
               <select id="f_forma_pago"><option>Nómina</option><option>Ventanilla</option><option>Libranza</option></select></div>
-            <div class="form-field"><label>Valor solicitado</label><input type="number" id="f_valor_solicitado" placeholder="$"></div>
+            <div class="form-field"><label>Valor solicitado (en miles de $)</label><input type="number" id="f_valor_solicitado" placeholder="$ (miles)"></div>
             <div class="form-field"><label>Plazo (meses)</label><input type="number" id="f_plazo"></div>
             <div class="form-field"><label>Amortización</label>
-              <select id="f_amortizacion"><option>Fija</option><option>Variable</option></select></div>
+              <select id="f_amortizacion"><option>Mensual</option><option>Semestral</option></select></div>
           </div>
         </div>
 
@@ -332,44 +332,44 @@
 
         <div class="form-section">
           <h2>Información financiera</h2>
-          <div class="form-subtitle">Ingresos mensuales</div>
+          <div class="form-subtitle">Ingresos mensuales (en miles de $)</div>
           <div class="form-grid">
-            <div class="form-field"><label>Salario básico / Ingresos actividad principal</label><input type="number" id="f_ing_salario" class="fin-calc"></div>
-            <div class="form-field"><label>Otros ingresos laborales (comisiones, horas extra)</label><input type="number" id="f_ing_otros_laborales" class="fin-calc"></div>
-            <div class="form-field"><label>Otros ingresos (pensiones, arriendos, rendimientos)</label><input type="number" id="f_ing_otros" class="fin-calc"></div>
+            <div class="form-field"><label>Salario básico / Ingresos actividad principal</label><input type="number" id="f_ing_salario" class="fin-calc" placeholder="miles de $"></div>
+            <div class="form-field"><label>Otros ingresos laborales (comisiones, horas extra)</label><input type="number" id="f_ing_otros_laborales" class="fin-calc" placeholder="miles de $"></div>
+            <div class="form-field"><label>Otros ingresos (pensiones, arriendos, rendimientos)</label><input type="number" id="f_ing_otros" class="fin-calc" placeholder="miles de $"></div>
             <div class="form-field"><label>Descripción de otros ingresos</label><input type="text" id="f_ing_otros_desc"></div>
           </div>
-          <div class="form-subtitle">Gastos mensuales</div>
+          <div class="form-subtitle">Gastos mensuales (en miles de $)</div>
           <div class="form-grid">
-            <div class="form-field"><label>Gastos familiares</label><input type="number" id="f_gasto_familiar" class="fin-calc"></div>
-            <div class="form-field"><label>Arriendo y/o cuota de vivienda</label><input type="number" id="f_gasto_arriendo" class="fin-calc"></div>
-            <div class="form-field"><label>Cuotas tarjetas de crédito</label><input type="number" id="f_gasto_tarjetas" class="fin-calc"></div>
-            <div class="form-field"><label>Cuotas créditos por libranza</label><input type="number" id="f_gasto_libranza" class="fin-calc"></div>
-            <div class="form-field"><label>Cuotas otros préstamos</label><input type="number" id="f_gasto_otros" class="fin-calc"></div>
+            <div class="form-field"><label>Gastos familiares</label><input type="number" id="f_gasto_familiar" class="fin-calc" placeholder="miles de $"></div>
+            <div class="form-field"><label>Arriendo y/o cuota de vivienda</label><input type="number" id="f_gasto_arriendo" class="fin-calc" placeholder="miles de $"></div>
+            <div class="form-field"><label>Cuotas tarjetas de crédito</label><input type="number" id="f_gasto_tarjetas" class="fin-calc" placeholder="miles de $"></div>
+            <div class="form-field"><label>Cuotas créditos por libranza</label><input type="number" id="f_gasto_libranza" class="fin-calc" placeholder="miles de $"></div>
+            <div class="form-field"><label>Cuotas otros préstamos</label><input type="number" id="f_gasto_otros" class="fin-calc" placeholder="miles de $"></div>
           </div>
           <div class="form-grid" style="margin-top:12px;">
-            <div class="form-field"><label>Total ingresos</label><input type="text" id="f_total_ingresos" readonly></div>
-            <div class="form-field"><label>Total gastos</label><input type="text" id="f_total_gastos" readonly></div>
-            <div class="form-field"><label>Disponible (ingresos - gastos)</label><input type="text" id="f_disponible" readonly></div>
+            <div class="form-field"><label>Total ingresos (miles de $)</label><input type="text" id="f_total_ingresos" readonly></div>
+            <div class="form-field"><label>Total gastos (miles de $)</label><input type="text" id="f_total_gastos" readonly></div>
+            <div class="form-field"><label>Disponible (ingresos - gastos) (miles de $)</label><input type="text" id="f_disponible" readonly></div>
           </div>
         </div>
 
         <div class="form-section">
           <h2>Información de activos</h2>
-          <div class="form-subtitle">Bienes inmuebles</div>
+          <div class="form-subtitle">Bienes inmuebles (valores en miles de $)</div>
           <table class="form-table">
-            <tr><th>Descripción</th><th>Dirección</th><th>Ciudad</th><th>Valor comercial</th><th>Hipotecado a favor de</th><th>Valor hipoteca</th></tr>
+            <tr><th>Descripción</th><th>Dirección</th><th>Ciudad</th><th>Valor comercial (miles)</th><th>Hipotecado a favor de</th><th>Valor hipoteca (miles)</th></tr>
             <tr><td><input id="f_inm1_desc"></td><td><input id="f_inm1_dir"></td><td><input id="f_inm1_ciudad"></td><td><input type="number" id="f_inm1_valor"></td><td><input id="f_inm1_hipoteca_favor"></td><td><input type="number" id="f_inm1_valor_hipoteca"></td></tr>
             <tr><td><input id="f_inm2_desc"></td><td><input id="f_inm2_dir"></td><td><input id="f_inm2_ciudad"></td><td><input type="number" id="f_inm2_valor"></td><td><input id="f_inm2_hipoteca_favor"></td><td><input type="number" id="f_inm2_valor_hipoteca"></td></tr>
           </table>
-          <div class="form-subtitle">Vehículo</div>
+          <div class="form-subtitle">Vehículo (valores en miles de $)</div>
           <table class="form-table">
-            <tr><th>Clase</th><th>Marca</th><th>Línea</th><th>Modelo</th><th>Placa</th><th>Valor comercial</th><th>Prenda a favor de</th><th>Valor prenda</th></tr>
+            <tr><th>Clase</th><th>Marca</th><th>Línea</th><th>Modelo</th><th>Placa</th><th>Valor comercial (miles)</th><th>Prenda a favor de</th><th>Valor prenda (miles)</th></tr>
             <tr><td><input id="f_veh1_clase"></td><td><input id="f_veh1_marca"></td><td><input id="f_veh1_linea"></td><td><input id="f_veh1_modelo"></td><td><input id="f_veh1_placa"></td><td><input type="number" id="f_veh1_valor"></td><td><input id="f_veh1_prenda_favor"></td><td><input type="number" id="f_veh1_valor_prenda"></td></tr>
           </table>
           <div class="form-grid" style="margin-top:10px;">
-            <div class="form-field"><label>Valor otros activos (muebles, enseres, inversiones)</label><input type="number" id="f_otros_activos"></div>
-            <div class="form-field"><label>Total pasivos (valor estimado del total de sus deudas)</label><input type="number" id="f_total_pasivos"></div>
+            <div class="form-field"><label>Valor otros activos (miles de $) (muebles, enseres, inversiones)</label><input type="number" id="f_otros_activos"></div>
+            <div class="form-field"><label>Total pasivos (miles de $) (valor estimado del total de sus deudas)</label><input type="number" id="f_total_pasivos"></div>
           </div>
         </div>
 
@@ -486,7 +486,6 @@
       <button class="nav-btn" data-view="home">Inicio</button>
       <button class="nav-btn" data-view="colocacion">Base General / Colocación</button>
       <button class="nav-btn" data-view="gestion">Gestión Externos</button>
-      <button class="nav-btn" data-view="admin" id="navAdmin" style="display:none;">Panel Admin</button>
       <button class="nav-btn" data-view="actualizaciones" id="navActualizaciones" style="display:none;">Actualizaciones de Datos</button>
     </div>
     <div class="right-actions">
@@ -642,15 +641,6 @@
     </div>
   </div>
 
-  <div class="view" id="view-admin">
-    <div class="card full-width">
-      <div class="card-title">Usuarios que han ingresado <span class="tag">En vivo</span></div>
-      <div class="table-scroll full">
-        <table id="tableSesiones"><thead><tr><th>Nombre</th><th>Fecha de ingreso</th><th>Estado</th><th>Acción</th></tr></thead><tbody></tbody></table>
-      </div>
-    </div>
-  </div>
-
   <div class="view" id="view-actualizaciones">
     <div class="card full-width">
       <div class="card-title">Solicitudes de crédito recibidas <span class="tag">En vivo</span></div>
@@ -715,7 +705,6 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.firestore(); }catch(e
 let ES_ADMIN = false;
 let miSessionToken = null;
 let miSessionUnsub = null;
-let sesionesUnsub = null;
 
 function generarToken(){ return 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2,10); }
 
@@ -745,32 +734,12 @@ async function cerrarMiSesionFirestore(){
     try{ await db.collection('sesiones').doc(miSessionToken).update({activo:false}); }catch(e){}
   }
 }
-function escucharSesiones(){
-  if(!db || sesionesUnsub) return;
-  sesionesUnsub = db.collection('sesiones').orderBy('timestamp','desc').limit(200).onSnapshot(function(snap){
-    const rows = [];
-    snap.forEach(function(doc){ rows.push(Object.assign({id:doc.id}, doc.data())); });
-    document.querySelector('#tableSesiones tbody').innerHTML = rows.map(function(r){
-      const fecha = (r.timestamp && r.timestamp.toDate) ? r.timestamp.toDate().toLocaleString('es-CO') : '—';
-      const estado = r.activo ? '<span class="pill aprob">Activa</span>' : '<span class="pill rechaz">Cerrada</span>';
-      const btn = r.activo ? '<button class="pdf-btn" style="padding:5px 10px;font-size:10.5px;background:#E0555B;" onclick="cerrarSesionAjena(\''+r.id+'\')">Cerrar sesión</button>' : '—';
-      return '<tr><td>'+(r.nombre||'')+'</td><td>'+fecha+'</td><td>'+estado+'</td><td>'+btn+'</td></tr>';
-    }).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--texto-sec);">Sin sesiones registradas</td></tr>';
-  }, function(err){
-    document.querySelector('#tableSesiones tbody').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#E0555B;">Firebase no está configurado todavía (ver LEEME.md).</td></tr>';
-  });
-}
-async function cerrarSesionAjena(id){
-  if(!db) return;
-  try{ await db.collection('sesiones').doc(id).update({activo:false}); }catch(e){}
-}
 
 function mostrarApp(){
   document.getElementById('lockScreen').style.display='none';
   document.getElementById('appContent').style.display='block';
-  document.getElementById('navAdmin').style.display = ES_ADMIN ? 'inline-block' : 'none';
   document.getElementById('navActualizaciones').style.display = ES_ADMIN ? 'inline-block' : 'none';
-  if(ES_ADMIN){ escucharSesiones(); escucharSolicitudesCredito(); }
+  if(ES_ADMIN){ escucharSolicitudesCredito(); }
 }
 function pedirAcceso(){
   if(sessionStorage.getItem('coopebis_admin') === '1'){
@@ -889,9 +858,9 @@ function calcularFinanzasFormulario(){
   const totalIngresos = v('f_ing_salario')+v('f_ing_otros_laborales')+v('f_ing_otros');
   const totalGastos = v('f_gasto_familiar')+v('f_gasto_arriendo')+v('f_gasto_tarjetas')+v('f_gasto_libranza')+v('f_gasto_otros');
   const disponible = totalIngresos - totalGastos;
-  document.getElementById('f_total_ingresos').value = '$' + totalIngresos.toLocaleString('es-CO');
-  document.getElementById('f_total_gastos').value = '$' + totalGastos.toLocaleString('es-CO');
-  document.getElementById('f_disponible').value = '$' + disponible.toLocaleString('es-CO');
+  document.getElementById('f_total_ingresos').value = '$' + totalIngresos.toLocaleString('es-CO') + ' mil';
+  document.getElementById('f_total_gastos').value = '$' + totalGastos.toLocaleString('es-CO') + ' mil';
+  document.getElementById('f_disponible').value = '$' + disponible.toLocaleString('es-CO') + ' mil';
 }
 
 function radioVal(name){
@@ -1005,9 +974,16 @@ async function generarPdfSolicitudCredito(datos, firmaDataUrl){
     y += 4;
   }
 
+  function fmtMil(v){
+    if(v===undefined || v===null || v==='') return '';
+    const n = Number(v);
+    if(isNaN(n)) return v;
+    return '$' + n.toLocaleString('es-CO') + ' mil';
+  }
+
   seccion('Crédito solicitado', [
     ['Línea de crédito', datos.linea_credito], ['Forma de pago', datos.forma_pago],
-    ['Valor solicitado', datos.valor_solicitado ? fmtM(Number(datos.valor_solicitado)) : ''],
+    ['Valor solicitado', fmtMil(datos.valor_solicitado)],
     ['Plazo', datos.plazo?(datos.plazo+' meses'):''], ['Amortización', datos.amortizacion]
   ], CORP_COLORS_RGB.comp1);
 
@@ -1036,19 +1012,19 @@ async function generarPdfSolicitudCredito(datos, firmaDataUrl){
   }
 
   seccion('Información financiera', [
-    ['Salario / ingresos principales', datos.ing_salario], ['Otros ingresos laborales', datos.ing_otros_laborales],
-    ['Otros ingresos', datos.ing_otros ? (datos.ing_otros + (datos.ing_otros_desc? ' ('+datos.ing_otros_desc+')':'')) : ''],
+    ['Salario / ingresos principales', fmtMil(datos.ing_salario)], ['Otros ingresos laborales', fmtMil(datos.ing_otros_laborales)],
+    ['Otros ingresos', datos.ing_otros ? (fmtMil(datos.ing_otros) + (datos.ing_otros_desc? ' ('+datos.ing_otros_desc+')':'')) : ''],
     ['Total ingresos', datos.total_ingresos],
-    ['Gastos familiares', datos.gasto_familiar], ['Arriendo / cuota vivienda', datos.gasto_arriendo],
-    ['Cuotas tarjetas de crédito', datos.gasto_tarjetas], ['Cuotas libranza', datos.gasto_libranza], ['Cuotas otros préstamos', datos.gasto_otros],
+    ['Gastos familiares', fmtMil(datos.gasto_familiar)], ['Arriendo / cuota vivienda', fmtMil(datos.gasto_arriendo)],
+    ['Cuotas tarjetas de crédito', fmtMil(datos.gasto_tarjetas)], ['Cuotas libranza', fmtMil(datos.gasto_libranza)], ['Cuotas otros préstamos', fmtMil(datos.gasto_otros)],
     ['Total gastos', datos.total_gastos], ['Disponible', datos.disponible]
   ], CORP_COLORS_RGB.comp1);
 
   seccion('Activos', [
-    ['Inmueble 1', [datos.inm1_desc,datos.inm1_dir,datos.inm1_ciudad,datos.inm1_valor].filter(Boolean).join(' · ')],
-    ['Inmueble 2', [datos.inm2_desc,datos.inm2_dir,datos.inm2_ciudad,datos.inm2_valor].filter(Boolean).join(' · ')],
-    ['Vehículo', [datos.veh1_clase,datos.veh1_marca,datos.veh1_linea,datos.veh1_modelo,datos.veh1_placa,datos.veh1_valor].filter(Boolean).join(' · ')],
-    ['Otros activos', datos.otros_activos], ['Total pasivos', datos.total_pasivos]
+    ['Inmueble 1', [datos.inm1_desc,datos.inm1_dir,datos.inm1_ciudad,fmtMil(datos.inm1_valor)].filter(Boolean).join(' · ')],
+    ['Inmueble 2', [datos.inm2_desc,datos.inm2_dir,datos.inm2_ciudad,fmtMil(datos.inm2_valor)].filter(Boolean).join(' · ')],
+    ['Vehículo', [datos.veh1_clase,datos.veh1_marca,datos.veh1_linea,datos.veh1_modelo,datos.veh1_placa,fmtMil(datos.veh1_valor)].filter(Boolean).join(' · ')],
+    ['Otros activos', fmtMil(datos.otros_activos)], ['Total pasivos', fmtMil(datos.total_pasivos)]
   ], CORP_COLORS_RGB.secundario);
 
   seccion('Referencias', [
@@ -1625,7 +1601,7 @@ function renderGestion(){
   });
 
   const estadosBD = Array.from(new Set(DATA.bd.map(function(r){return r['ESTADO'];}).filter(Boolean)));
-  const coloresEstado = {'DESEMBOLSADO':'#3FBF8F','EN RECEPCION':'#0E8A93','DEVOLUCION':'#E0555B','EXTRAPRIMADO':'#045078','ANULADO':'#8a6a2f'};
+  const coloresEstado = {'DESEMBOLSADO':'#1E8A5C','EN RECEPCION':'#0E8A93','DEVOLUCION':'#E0555B','EXTRAPRIMADO':'#045078','ANULADO':'#8a6a2f'};
   const conteo = estadosBD.map(function(e){ return rowsBD.filter(function(r){return r['ESTADO']===e;}).length; });
   destroyChart('pieEstado');
   charts.pieEstado = new Chart(document.getElementById('pieEstado'), {
@@ -1666,7 +1642,7 @@ function renderGestion(){
   charts.barDesembolsoPendiente = new Chart(document.getElementById('barDesembolsoPendiente'), {
     type:'bar',
     data:{ labels: asesoresGrafica, datasets:[
-      { label:'Desembolsado', data:dataDesembolsado, backgroundColor:'#3FBF8F', borderRadius:5, barThickness:34 },
+      { label:'Desembolsado', data:dataDesembolsado, backgroundColor:'#1E8A5C', borderRadius:5, barThickness:34 },
       { label:'Pendiente desembolso', data:dataPendiente, backgroundColor:'#D2BB1D', borderRadius:5, barThickness:34 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:26}},
