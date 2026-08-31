@@ -721,7 +721,7 @@ function generarToken(){ return 'sess-' + Date.now() + '-' + Math.random().toStr
 
 async function crearSesion(nombre){
   const token = generarToken();
-  await db.collection('sesiones_v2').doc(token).set({
+  await db.collection('sesiones').doc(token).set({
     nombre: nombre,
     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     activo: true
@@ -731,7 +731,7 @@ async function crearSesion(nombre){
 function escucharMiSesion(token){
   if(!db) return;
   if(miSessionUnsub) miSessionUnsub();
-  miSessionUnsub = db.collection('sesiones_v2').doc(token).onSnapshot(function(doc){
+  miSessionUnsub = db.collection('sesiones').doc(token).onSnapshot(function(doc){
     if(!doc.exists || doc.data().activo === false){
       sessionStorage.removeItem('coopebis_token');
       sessionStorage.removeItem('coopebis_unlocked');
@@ -742,12 +742,12 @@ function escucharMiSesion(token){
 }
 async function cerrarMiSesionFirestore(){
   if(db && miSessionToken){
-    try{ await db.collection('sesiones_v2').doc(miSessionToken).update({activo:false}); }catch(e){}
+    try{ await db.collection('sesiones').doc(miSessionToken).update({activo:false}); }catch(e){}
   }
 }
 function escucharSesiones(){
   if(!db || sesionesUnsub) return;
-  sesionesUnsub = db.collection('sesiones_v2').orderBy('timestamp','desc').limit(200).onSnapshot(function(snap){
+  sesionesUnsub = db.collection('sesiones').orderBy('timestamp','desc').limit(200).onSnapshot(function(snap){
     const rows = [];
     snap.forEach(function(doc){ rows.push(Object.assign({id:doc.id}, doc.data())); });
     document.querySelector('#tableSesiones tbody').innerHTML = rows.map(function(r){
@@ -762,7 +762,7 @@ function escucharSesiones(){
 }
 async function cerrarSesionAjena(id){
   if(!db) return;
-  try{ await db.collection('sesiones_v2').doc(id).update({activo:false}); }catch(e){}
+  try{ await db.collection('sesiones').doc(id).update({activo:false}); }catch(e){}
 }
 
 function mostrarApp(){
@@ -1057,6 +1057,7 @@ async function generarPdfSolicitudCredito(datos, firmaDataUrl){
     ['Vehículo', [datos.veh1_clase,datos.veh1_marca,datos.veh1_linea,datos.veh1_modelo,datos.veh1_placa,fmtMil(datos.veh1_valor)].filter(Boolean).join(' · ')],
     ['Otros activos', fmtMil(datos.otros_activos)], ['Total pasivos', fmtMil(datos.total_pasivos)]
   ], CORP_COLORS_RGB.secundario);
+
 
   seccion('Referencias', [
     ['Referencia 1', [datos.ref1_nombre,datos.ref1_tel,datos.ref1_parentesco].filter(Boolean).join(' · ')],
