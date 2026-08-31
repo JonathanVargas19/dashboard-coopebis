@@ -486,6 +486,7 @@
       <button class="nav-btn" data-view="home">Inicio</button>
       <button class="nav-btn" data-view="colocacion">Base General / Colocación</button>
       <button class="nav-btn" data-view="gestion">Gestión Externos</button>
+      <button class="nav-btn" data-view="admin" id="navAdmin" style="display:none;">Panel Admin</button>
       <button class="nav-btn" data-view="actualizaciones" id="navActualizaciones" style="display:none;">Actualizaciones de Datos</button>
     </div>
     <div class="right-actions">
@@ -641,6 +642,15 @@
     </div>
   </div>
 
+  <div class="view" id="view-admin">
+    <div class="card full-width">
+      <div class="card-title">Usuarios que han ingresado <span class="tag">En vivo</span></div>
+      <div class="table-scroll full">
+        <table id="tableSesiones"><thead><tr><th>Nombre</th><th>Fecha de ingreso</th><th>Estado</th><th>Acción</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+
   <div class="view" id="view-actualizaciones">
     <div class="card full-width">
       <div class="card-title">Solicitudes de crédito recibidas <span class="tag">En vivo</span></div>
@@ -705,12 +715,13 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.firestore(); }catch(e
 let ES_ADMIN = false;
 let miSessionToken = null;
 let miSessionUnsub = null;
+let sesionesUnsub = null;
 
 function generarToken(){ return 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2,10); }
 
 async function crearSesion(nombre){
   const token = generarToken();
-  await db.collection('sesiones').doc(token).set({
+  await db.collection('sesiones_v2').doc(token).set({
     nombre: nombre,
     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     activo: true
@@ -720,7 +731,7 @@ async function crearSesion(nombre){
 function escucharMiSesion(token){
   if(!db) return;
   if(miSessionUnsub) miSessionUnsub();
-  miSessionUnsub = db.collection('sesiones').doc(token).onSnapshot(function(doc){
+  miSessionUnsub = db.collection('sesiones_v2').doc(token).onSnapshot(function(doc){
     if(!doc.exists || doc.data().activo === false){
       sessionStorage.removeItem('coopebis_token');
       sessionStorage.removeItem('coopebis_unlocked');
@@ -731,15 +742,35 @@ function escucharMiSesion(token){
 }
 async function cerrarMiSesionFirestore(){
   if(db && miSessionToken){
-    try{ await db.collection('sesiones').doc(miSessionToken).update({activo:false}); }catch(e){}
+    try{ await db.collection('sesiones_v2').doc(miSessionToken).update({activo:false}); }catch(e){}
   }
+}
+function escucharSesiones(){
+  if(!db || sesionesUnsub) return;
+  sesionesUnsub = db.collection('sesiones_v2').orderBy('timestamp','desc').limit(200).onSnapshot(function(snap){
+    const rows = [];
+    snap.forEach(function(doc){ rows.push(Object.assign({id:doc.id}, doc.data())); });
+    document.querySelector('#tableSesiones tbody').innerHTML = rows.map(function(r){
+      const fecha = (r.timestamp && r.timestamp.toDate) ? r.timestamp.toDate().toLocaleString('es-CO') : '—';
+      const estado = r.activo ? '<span class="pill aprob">Activa</span>' : '<span class="pill rechaz">Cerrada</span>';
+      const btn = r.activo ? '<button class="pdf-btn" style="padding:5px 10px;font-size:10.5px;background:#E0555B;" onclick="cerrarSesionAjena(\''+r.id+'\')">Cerrar sesión</button>' : '—';
+      return '<tr><td>'+(r.nombre||'')+'</td><td>'+fecha+'</td><td>'+estado+'</td><td>'+btn+'</td></tr>';
+    }).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--texto-sec);">Sin sesiones registradas</td></tr>';
+  }, function(err){
+    document.querySelector('#tableSesiones tbody').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#E0555B;">Firebase no está configurado todavía (ver LEEME.md).</td></tr>';
+  });
+}
+async function cerrarSesionAjena(id){
+  if(!db) return;
+  try{ await db.collection('sesiones_v2').doc(id).update({activo:false}); }catch(e){}
 }
 
 function mostrarApp(){
   document.getElementById('lockScreen').style.display='none';
   document.getElementById('appContent').style.display='block';
+  document.getElementById('navAdmin').style.display = ES_ADMIN ? 'inline-block' : 'none';
   document.getElementById('navActualizaciones').style.display = ES_ADMIN ? 'inline-block' : 'none';
-  if(ES_ADMIN){ escucharSolicitudesCredito(); }
+  if(ES_ADMIN){ escucharSesiones(); escucharSolicitudesCredito(); }
 }
 function pedirAcceso(){
   if(sessionStorage.getItem('coopebis_admin') === '1'){
