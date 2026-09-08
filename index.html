@@ -1084,18 +1084,18 @@ async function generarPdfSolicitudCredito(datos, firmaDataUrl){
   ], CORP_COLORS_RGB.comp1);
 
   seccion('Activos', [
-    ['Inmueble 1', [datos.inm1_desc,datos.inm1_dir,datos.inm1_ciudad,fmtMil(datos.inm1_valor)].filter(Boolean).join(' · ')],
-    ['Inmueble 2', [datos.inm2_desc,datos.inm2_dir,datos.inm2_ciudad,fmtMil(datos.inm2_valor)].filter(Boolean).join(' · ')],
-    ['Vehículo', [datos.veh1_clase,datos.veh1_marca,datos.veh1_linea,datos.veh1_modelo,datos.veh1_placa,fmtMil(datos.veh1_valor)].filter(Boolean).join(' · ')],
+    ['Inmueble 1', [datos.inm1_desc,datos.inm1_dir,datos.inm1_ciudad,fmtMil(datos.inm1_valor),(datos.inm1_hipoteca_favor?('Hipotecado a: '+datos.inm1_hipoteca_favor):''),(datos.inm1_valor_hipoteca?('Valor hipoteca: '+fmtMil(datos.inm1_valor_hipoteca)):'')].filter(Boolean).join(' · ')],
+    ['Inmueble 2', [datos.inm2_desc,datos.inm2_dir,datos.inm2_ciudad,fmtMil(datos.inm2_valor),(datos.inm2_hipoteca_favor?('Hipotecado a: '+datos.inm2_hipoteca_favor):''),(datos.inm2_valor_hipoteca?('Valor hipoteca: '+fmtMil(datos.inm2_valor_hipoteca)):'')].filter(Boolean).join(' · ')],
+    ['Vehículo', [datos.veh1_clase,datos.veh1_marca,datos.veh1_linea,datos.veh1_modelo,datos.veh1_placa,fmtMil(datos.veh1_valor),(datos.veh1_prenda_favor?('Prenda a favor de: '+datos.veh1_prenda_favor):''),(datos.veh1_valor_prenda?('Valor prenda: '+fmtMil(datos.veh1_valor_prenda)):'')].filter(Boolean).join(' · ')],
     ['Otros activos', fmtMil(datos.otros_activos)], ['Total pasivos', fmtMil(datos.total_pasivos)]
   ], CORP_COLORS_RGB.secundario);
 
 
   seccion('Referencias', [
-    ['Referencia 1', [datos.ref1_nombre,datos.ref1_tel,datos.ref1_parentesco].filter(Boolean).join(' · ')],
-    ['Referencia 2', [datos.ref2_nombre,datos.ref2_tel,datos.ref2_parentesco].filter(Boolean).join(' · ')],
-    ['Referencia 3', [datos.ref3_nombre,datos.ref3_tel,datos.ref3_parentesco].filter(Boolean).join(' · ')],
-    ['Ref. bancaria', [datos.refb1_entidad,datos.refb1_cuenta,datos.refb1_sucursal].filter(Boolean).join(' · ')]
+    ['Referencia 1', [datos.ref1_nombre,datos.ref1_dir,datos.ref1_ciudad,datos.ref1_tel,datos.ref1_parentesco].filter(Boolean).join(' · ')],
+    ['Referencia 2', [datos.ref2_nombre,datos.ref2_dir,datos.ref2_ciudad,datos.ref2_tel,datos.ref2_parentesco].filter(Boolean).join(' · ')],
+    ['Referencia 3', [datos.ref3_nombre,datos.ref3_dir,datos.ref3_ciudad,datos.ref3_tel,datos.ref3_parentesco].filter(Boolean).join(' · ')],
+    ['Ref. bancaria', [datos.refb1_entidad,datos.refb1_cuenta,datos.refb1_sucursal,datos.refb1_ciudad].filter(Boolean).join(' · ')]
   ], CORP_COLORS_RGB.primario);
 
   seccion('Desembolso y autorizaciones', [
