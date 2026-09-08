@@ -1117,6 +1117,71 @@ async function generarPdfSolicitudCredito(datos, firmaDataUrl){
   doc.save(nombreArchivo);
 }
 
+function poblarClonConDatos(root, datos, firmaDataUrl){
+  root.querySelectorAll('input, select, textarea').forEach(function(el){
+    if(el.type === 'radio'){
+      const key = el.name.replace(/^f_/, '');
+      el.checked = (datos[key] !== undefined && datos[key] !== null && String(datos[key]) === el.value);
+      el.disabled = true;
+    } else if(el.type === 'checkbox'){
+      const key = el.id.replace(/^f_/, '');
+      el.checked = !!datos[key];
+      el.disabled = true;
+    } else if(el.id === 'f_cc_confirmacion' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA' || el.tagName === 'INPUT'){
+      const key = el.id.replace(/^f_/, '');
+      if(key && datos[key] !== undefined && datos[key] !== null) el.value = datos[key];
+      el.disabled = true;
+    }
+  });
+  // Reemplazar el recuadro de firma (canvas) por la firma guardada, ya que un canvas no se puede "rellenar" como un input
+  const canvas = root.querySelector('#signaturePad');
+  if(canvas){
+    const cont = document.createElement('div');
+    cont.style.cssText = 'border:1.5px dashed var(--borde);border-radius:8px;background:#FFFFFF;width:100%;min-height:150px;display:flex;align-items:center;justify-content:center;padding:8px;';
+    if(firmaDataUrl){
+      const img = document.createElement('img');
+      img.src = firmaDataUrl;
+      img.style.cssText = 'max-width:100%;max-height:150px;';
+      cont.appendChild(img);
+    } else {
+      cont.innerHTML = '<span style="color:var(--texto-sec);font-size:12px;">Sin firma registrada</span>';
+    }
+    canvas.replaceWith(cont);
+  }
+  const btnLimpiar = root.querySelector('#btnLimpiarFirma');
+  if(btnLimpiar) btnLimpiar.remove();
+  const btnFinalizar = root.querySelector('#btnFinalizarSolicitud');
+  if(btnFinalizar) btnFinalizar.remove();
+  const msg = root.querySelector('#formMsg');
+  if(msg) msg.remove();
+}
+
+function mostrarSolicitudEnLinea(datos, firmaDataUrl){
+  const origen = document.getElementById('formSolicitud');
+  if(!origen) return;
+  const clon = origen.cloneNode(true);
+  poblarClonConDatos(clon, datos||{}, firmaDataUrl);
+
+  const banner = '<div style="background:#FFF3CD;border:1px solid #E5C93B;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#5C3D00;">'
+    + 'Vista de solo lectura de la solicitud diligenciada' + (datos && datos.nombre ? (' — ' + datos.nombre) : '') + '. No es un formulario editable.</div>';
+
+  const html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'
+    + '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+    + '<title>Solicitud de crédito' + (datos && datos.nombre ? (' - ' + datos.nombre) : '') + '</title>'
+    + document.head.innerHTML
+    + '</head><body><div class="app" style="max-width:900px;">' + banner + clon.outerHTML + '</div></body></html>';
+
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+}
+
+function verSolicitudCredito(id){
+  const row = (window.SOLICITUDES_CREDITO_CACHE||[]).find(function(r){return r.id===id;});
+  if(!row) return;
+  mostrarSolicitudEnLinea(row.datos||{}, row.firma);
+}
+
 let solicitudesUnsub = null;
 function escucharSolicitudesCredito(){
   if(!db || solicitudesUnsub) return;
@@ -1127,7 +1192,8 @@ function escucharSolicitudesCredito(){
     document.querySelector('#tableSolicitudesCredito tbody').innerHTML = rows.map(function(r){
       const fecha = (r.timestamp && r.timestamp.toDate) ? r.timestamp.toDate().toLocaleString('es-CO') : '—';
       return '<tr><td>'+(r.nombre||'')+'</td><td>'+(r.cedula||'')+'</td><td>'+fecha+'</td>'+
-        '<td><button class="refresh-btn" style="padding:5px 10px;font-size:10.5px;" onclick="descargarSolicitudCredito(\''+r.id+'\')">Descargar PDF</button></td></tr>';
+        '<td><button class="refresh-btn" style="padding:5px 10px;font-size:10.5px;" onclick="verSolicitudCredito(\''+r.id+'\')">Ver en línea</button> '+
+        '<button class="refresh-btn" style="padding:5px 10px;font-size:10.5px;" onclick="descargarSolicitudCredito(\''+r.id+'\')">Descargar PDF</button></td></tr>';
     }).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--texto-sec);">Sin solicitudes recibidas</td></tr>';
   }, function(err){
     document.querySelector('#tableSolicitudesCredito tbody').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#D14550;">Firebase no está configurado todavía.</td></tr>';
