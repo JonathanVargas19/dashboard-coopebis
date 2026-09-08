@@ -1159,26 +1159,40 @@ function poblarClonConDatos(root, datos, firmaDataUrl){
 function mostrarSolicitudEnLinea(datos, firmaDataUrl){
   const origen = document.getElementById('formSolicitud');
   if(!origen) return;
+
+  // Abrir la ventana ANTES de cualquier otro procesamiento (evita que el bloqueador de pop-ups la cierre)
+  const win = window.open('', '_blank');
+  if(!win){
+    alert('Tu navegador bloqueó la ventana emergente. Permite las ventanas emergentes para este sitio e inténtalo de nuevo.');
+    return;
+  }
+
   const clon = origen.cloneNode(true);
   poblarClonConDatos(clon, datos||{}, firmaDataUrl);
 
   const banner = '<div style="background:#FFF3CD;border:1px solid #E5C93B;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#5C3D00;">'
     + 'Vista de solo lectura de la solicitud diligenciada' + (datos && datos.nombre ? (' — ' + datos.nombre) : '') + '. No es un formulario editable.</div>';
 
-  const html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'
-    + '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+  // Solo se copian los estilos (CSS) y la tipografía; NO se copian los <script> pesados (Chart.js, xlsx, jsPDF, Firebase),
+  // que no se necesitan para esta vista y pueden hacer que la pestaña tarde o se quede en blanco.
+  const linkFuentes = document.querySelector('link[href*="fonts.googleapis.com"]');
+  const estilos = document.querySelector('style');
+  const headHTML = '<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">'
     + '<title>Solicitud de crédito' + (datos && datos.nombre ? (' - ' + datos.nombre) : '') + '</title>'
-    + document.head.innerHTML
-    + '</head><body><div class="app" style="max-width:900px;">' + banner + clon.outerHTML + '</div></body></html>';
+    + (linkFuentes ? linkFuentes.outerHTML : '')
+    + (estilos ? estilos.outerHTML : '');
 
-  const blob = new Blob([html], {type:'text/html'});
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
+  const html = '<!DOCTYPE html><html lang="es"><head>' + headHTML + '</head><body><div class="app" style="max-width:900px;">'
+    + banner + clon.outerHTML + '</div></body></html>';
+
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
 }
 
 function verSolicitudCredito(id){
   const row = (window.SOLICITUDES_CREDITO_CACHE||[]).find(function(r){return r.id===id;});
-  if(!row) return;
+  if(!row){ alert('No se encontró la solicitud. Intenta refrescar la página.'); return; }
   mostrarSolicitudEnLinea(row.datos||{}, row.firma);
 }
 
