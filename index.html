@@ -1117,7 +1117,8 @@ async function generarPdfSolicitudCredito(datos, firmaDataUrl){
   doc.save(nombreArchivo);
 }
 
-function poblarClonConDatos(root, datos, firmaDataUrl){
+function poblarClonConDatos(root, datos, firmaDataUrl, targetDoc){
+  targetDoc = targetDoc || document;
   root.querySelectorAll('input, select, textarea').forEach(function(el){
     if(el.type === 'radio'){
       const key = el.name.replace(/^f_/, '');
@@ -1127,7 +1128,7 @@ function poblarClonConDatos(root, datos, firmaDataUrl){
       const key = el.id.replace(/^f_/, '');
       el.checked = !!datos[key];
       el.disabled = true;
-    } else if(el.id === 'f_cc_confirmacion' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA' || el.tagName === 'INPUT'){
+    } else if(el.tagName === 'SELECT' || el.tagName === 'TEXTAREA' || el.tagName === 'INPUT'){
       const key = el.id.replace(/^f_/, '');
       if(key && datos[key] !== undefined && datos[key] !== null) el.value = datos[key];
       el.disabled = true;
@@ -1136,10 +1137,10 @@ function poblarClonConDatos(root, datos, firmaDataUrl){
   // Reemplazar el recuadro de firma (canvas) por la firma guardada, ya que un canvas no se puede "rellenar" como un input
   const canvas = root.querySelector('#signaturePad');
   if(canvas){
-    const cont = document.createElement('div');
+    const cont = targetDoc.createElement('div');
     cont.style.cssText = 'border:1.5px dashed var(--borde);border-radius:8px;background:#FFFFFF;width:100%;min-height:150px;display:flex;align-items:center;justify-content:center;padding:8px;';
     if(firmaDataUrl){
-      const img = document.createElement('img');
+      const img = targetDoc.createElement('img');
       img.src = firmaDataUrl;
       img.style.cssText = 'max-width:100%;max-height:150px;';
       cont.appendChild(img);
@@ -1167,14 +1168,7 @@ function mostrarSolicitudEnLinea(datos, firmaDataUrl){
     return;
   }
 
-  const clon = origen.cloneNode(true);
-  poblarClonConDatos(clon, datos||{}, firmaDataUrl);
-
-  const banner = '<div style="background:#FFF3CD;border:1px solid #E5C93B;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#5C3D00;">'
-    + 'Vista de solo lectura de la solicitud diligenciada' + (datos && datos.nombre ? (' — ' + datos.nombre) : '') + '. No es un formulario editable.</div>';
-
-  // Solo se copian los estilos (CSS) y la tipografía; NO se copian los <script> pesados (Chart.js, xlsx, jsPDF, Firebase),
-  // que no se necesitan para esta vista y pueden hacer que la pestaña tarde o se quede en blanco.
+  // Solo se copian los estilos (CSS) y la tipografía; NO se copian los <script> pesados (Chart.js, xlsx, jsPDF, Firebase)
   const linkFuentes = document.querySelector('link[href*="fonts.googleapis.com"]');
   const estilos = document.querySelector('style');
   const headHTML = '<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">'
@@ -1182,12 +1176,22 @@ function mostrarSolicitudEnLinea(datos, firmaDataUrl){
     + (linkFuentes ? linkFuentes.outerHTML : '')
     + (estilos ? estilos.outerHTML : '');
 
-  const html = '<!DOCTYPE html><html lang="es"><head>' + headHTML + '</head><body><div class="app" style="max-width:900px;">'
-    + banner + clon.outerHTML + '</div></body></html>';
-
   win.document.open();
-  win.document.write(html);
+  win.document.write('<!DOCTYPE html><html lang="es"><head>' + headHTML + '</head><body><div class="app" style="max-width:900px;" id="appRoot"></div></body></html>');
   win.document.close();
+
+  const appRoot = win.document.getElementById('appRoot');
+
+  const banner = win.document.createElement('div');
+  banner.style.cssText = 'background:#FFF3CD;border:1px solid #E5C93B;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#5C3D00;';
+  banner.textContent = 'Vista de solo lectura de la solicitud diligenciada' + (datos && datos.nombre ? (' — ' + datos.nombre) : '') + '. No es un formulario editable.';
+  appRoot.appendChild(banner);
+
+  // Importamos el formulario ORIGINAL (estructura) al documento de la pestaña nueva, y ASÍ, ya conectado a
+  // ese documento, le asignamos los valores diligenciados — así el navegador sí los pinta en pantalla.
+  const clon = win.document.importNode(origen, true);
+  poblarClonConDatos(clon, datos||{}, firmaDataUrl, win.document);
+  appRoot.appendChild(clon);
 }
 
 function verSolicitudCredito(id){
