@@ -259,6 +259,12 @@
   .import-note{font-size:10.5px;color:var(--texto-sec);margin-top:8px;}
   .table-actions{white-space:nowrap;}
   #tableRadicacion, #tableAnticipos{font-size:11px;}
+  #tableRadicacion{table-layout:fixed;}
+  #tableRadicacion td, #tableRadicacion th{padding:6px 7px;}
+  #tableRadicacion td{white-space:normal;word-break:break-word;overflow:hidden;}
+  #tableRadicacion td.truncate{white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}
+  #tableRadicacion .table-actions{white-space:nowrap;}
+  #tableRadicacion .btn-edit-outline, #tableRadicacion .btn-danger-outline{padding:4px 7px;font-size:9.5px;margin-right:4px;}
 </style>
 </head>
 <body>
@@ -764,7 +770,8 @@
         <button class="btn-secondary-outline" id="btnImportarHistoricoBD">Importar base histórica BD</button>
       </div>
       <div class="right-group">
-        <div class="search-box"><input type="text" id="searchRadicacion" placeholder="Buscar por nombre o cédula…"></div>
+        <div class="filter-group"><label>Estado</label><select id="fRadEstado"><option value="TODOS">Todos</option></select></div>
+        <div class="search-box"><input type="text" id="searchRadicacion" placeholder="Buscar por cédula, nombre o asesor…"></div>
         <span class="status" id="statusRadicacion"></span>
       </div>
     </div>
@@ -775,9 +782,10 @@
       <div class="table-scroll full">
         <table id="tableRadicacion">
           <thead><tr>
-            <th>Código</th><th>Mes</th><th>Cédula</th><th>Nombre</th><th>Fecha</th><th>Radicación</th>
-            <th>Tipo crédito</th><th>Estado</th><th>Valor</th><th>Tipo contrato</th><th>Entidad</th><th>Asesor</th>
-            <th>Observación</th><th>Acciones</th>
+            <th style="width:5%;">Código</th><th style="width:8%;">Cédula</th><th style="width:15%;">Nombre</th>
+            <th style="width:7%;">Fecha</th><th style="width:9%;">Tipo crédito</th><th style="width:9%;">Estado</th>
+            <th style="width:7%;">Valor</th><th style="width:11%;">Entidad</th><th style="width:8%;">Asesor</th>
+            <th style="width:11%;">Observación</th><th style="width:10%;">Acciones</th>
           </tr></thead>
           <tbody></tbody>
         </table>
@@ -1091,11 +1099,14 @@ function escucharRadicacionesFirestore(){
 
 function filtrarRadicacionTabla(){
   const q = (document.getElementById('searchRadicacion').value||'').toString().toLowerCase();
+  const estadoSel = document.getElementById('fRadEstado') ? document.getElementById('fRadEstado').value : 'TODOS';
   return (window.RADICACIONES_CACHE||[]).filter(function(r){
+    if(estadoSel && estadoSel!=='TODOS' && r['ESTADO']!==estadoSel) return false;
     if(!q) return true;
     const nombre = String(r['NOMBRE']||'').toLowerCase();
     const cedula = String(r['CEDULA']||'');
-    return nombre.indexOf(q)>-1 || cedula.indexOf(q)>-1;
+    const asesor = String(r['ASESOR']||'').toLowerCase();
+    return nombre.indexOf(q)>-1 || cedula.indexOf(q)>-1 || asesor.indexOf(q)>-1;
   });
 }
 
@@ -1104,26 +1115,32 @@ function renderTablaRadicacion(){
   document.getElementById('tagRadicacionCount').textContent = rows.length + ' registros';
   const pillClass = function(e){ return e==='DESEMBOLSADO' ? 'aprob' : (e==='ANULADO'||e==='DEVOLUCION') ? 'rechaz' : 'otro'; };
   document.querySelector('#tableRadicacion tbody').innerHTML = rows.map(function(r){
+    const obs = r['OBSERVACION']||'';
     return '<tr>'+
       '<td>'+(r['CODIGO']!=null?r['CODIGO']:'')+'</td>'+
-      '<td>'+(r['MES']!=null?r['MES']:'')+'</td>'+
       '<td>'+(r['CEDULA']||'')+'</td>'+
       '<td>'+titleCase(r['NOMBRE']||'')+'</td>'+
       '<td>'+fmtFecha(r['FECHA'])+'</td>'+
-      '<td>'+(r['RADICACION']||'')+'</td>'+
       '<td>'+titleCase(r['TIPO CREDITO']||'')+'</td>'+
       '<td><span class="pill '+pillClass(r['ESTADO'])+'">'+(r['ESTADO']||'')+'</span></td>'+
       '<td>'+fmtM(Number(r['VALOR']||0))+'</td>'+
-      '<td>'+titleCase(r['TIPO DE CONTRATO']||'')+'</td>'+
       '<td>'+titleCase(r['ENTIDAD']||'')+'</td>'+
       '<td>'+titleCase(r['ASESOR']||'')+'</td>'+
-      '<td>'+(r['OBSERVACION']||'')+'</td>'+
+      '<td class="truncate" title="'+obs.replace(/"/g,'&quot;')+'">'+obs+'</td>'+
       '<td class="table-actions">'+
         '<button class="btn-edit-outline" onclick="abrirModalRadicacion(\''+r._id+'\')">Editar</button>'+
         '<button class="btn-danger-outline" onclick="eliminarRadicacion(\''+r._id+'\')">Eliminar</button>'+
       '</td>'+
     '</tr>';
-  }).join('') || '<tr><td colspan="14" style="text-align:center;color:var(--texto-sec);">Sin registros — usa "Agregar" o "Importar base histórica BD"</td></tr>';
+  }).join('') || '<tr><td colspan="11" style="text-align:center;color:var(--texto-sec);">Sin registros — usa "Agregar" o "Importar base histórica BD"</td></tr>';
+}
+
+function poblarFiltroEstadoRadicacion(){
+  const sel = document.getElementById('fRadEstado');
+  if(!sel || sel.dataset.poblado) return;
+  sel.innerHTML = '<option value="TODOS">Todos</option>' + ESTADOS_BD_LISTA.map(function(e){ return '<option value="'+e+'">'+e+'</option>'; }).join('');
+  sel.dataset.poblado = '1';
+  sel.addEventListener('change', renderTablaRadicacion);
 }
 
 function siguienteCodigoRadicacion(){
@@ -1477,7 +1494,7 @@ function mostrarApp(){
   document.getElementById('navActualizaciones').style.display = ES_ADMIN ? 'inline-block' : 'none';
   document.getElementById('navRadicacion').style.display = ES_ADMIN ? 'inline-block' : 'none';
   document.getElementById('navAnticipos').style.display = ES_ADMIN ? 'inline-block' : 'none';
-  if(ES_ADMIN){ escucharSesiones(); escucharSolicitudesCredito(); }
+  if(ES_ADMIN){ escucharSesiones(); escucharSolicitudesCredito(); poblarFiltroEstadoRadicacion(); }
   // La Gestión Externos (hoja BD) ahora se alimenta en línea desde Firestore, la vean o no admins.
   escucharRadicacionesFirestore();
   escucharAnticiposFirestore();
