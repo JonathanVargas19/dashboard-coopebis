@@ -782,10 +782,10 @@
       <div class="table-scroll full">
         <table id="tableRadicacion">
           <thead><tr>
-            <th style="width:5%;">Código</th><th style="width:8%;">Cédula</th><th style="width:15%;">Nombre</th>
-            <th style="width:7%;">Fecha</th><th style="width:9%;">Tipo crédito</th><th style="width:9%;">Estado</th>
-            <th style="width:7%;">Valor</th><th style="width:11%;">Entidad</th><th style="width:8%;">Asesor</th>
-            <th style="width:11%;">Observación</th><th style="width:10%;">Acciones</th>
+            <th style="width:5%;">Código</th><th style="width:7%;">Cédula</th><th style="width:13%;">Nombre</th>
+            <th style="width:6%;">Fecha</th><th style="width:8%;">Tipo crédito</th><th style="width:8%;">Estado</th>
+            <th style="width:6%;">Valor</th><th style="width:7%;">F. Desembolso</th><th style="width:10%;">Entidad</th><th style="width:7%;">Asesor</th>
+            <th style="width:10%;">Observación</th><th style="width:9%;">Acciones</th>
           </tr></thead>
           <tbody></tbody>
         </table>
@@ -1090,6 +1090,7 @@ function escucharRadicacionesFirestore(){
     actualizarFiltrosGestionDesdeBD();
     renderGestion();
     renderTablaRadicacion();
+    cruzarDesembolsosConColocacion(false);
     if(st){ st.textContent = 'Datos al día · ' + new Date().toLocaleTimeString('es-CO'); st.className='status ok'; }
   }, function(err){
     console.error('Firestore radicaciones:', err);
@@ -1116,6 +1117,8 @@ function renderTablaRadicacion(){
   const pillClass = function(e){ return e==='DESEMBOLSADO' ? 'aprob' : (e==='ANULADO'||e==='DEVOLUCION') ? 'rechaz' : 'otro'; };
   document.querySelector('#tableRadicacion tbody').innerHTML = rows.map(function(r){
     const obs = r['OBSERVACION']||'';
+    const fDes = r['FECHA DESEMBOLSO'];
+    const fDesTxt = (fDes && fDes!=='-' && fDes!=='00:00:00') ? fDes : '-';
     return '<tr>'+
       '<td>'+(r['CODIGO']!=null?r['CODIGO']:'')+'</td>'+
       '<td>'+(r['CEDULA']||'')+'</td>'+
@@ -1124,6 +1127,7 @@ function renderTablaRadicacion(){
       '<td>'+titleCase(r['TIPO CREDITO']||'')+'</td>'+
       '<td><span class="pill '+pillClass(r['ESTADO'])+'">'+(r['ESTADO']||'')+'</span></td>'+
       '<td>'+fmtM(Number(r['VALOR']||0))+'</td>'+
+      '<td>'+fDesTxt+'</td>'+
       '<td>'+titleCase(r['ENTIDAD']||'')+'</td>'+
       '<td>'+titleCase(r['ASESOR']||'')+'</td>'+
       '<td class="truncate" title="'+obs.replace(/"/g,'&quot;')+'">'+obs+'</td>'+
@@ -1132,7 +1136,7 @@ function renderTablaRadicacion(){
         '<button class="btn-danger-outline" onclick="eliminarRadicacion(\''+r._id+'\')">Eliminar</button>'+
       '</td>'+
     '</tr>';
-  }).join('') || '<tr><td colspan="11" style="text-align:center;color:var(--texto-sec);">Sin registros — usa "Agregar" o "Importar base histórica BD"</td></tr>';
+  }).join('') || '<tr><td colspan="12" style="text-align:center;color:var(--texto-sec);">Sin registros — usa "Agregar" o "Importar base histórica BD"</td></tr>';
 }
 
 function poblarFiltroEstadoRadicacion(){
@@ -2072,6 +2076,138 @@ function destroyChart(key){ if(charts[key]){ charts[key].destroy(); delete chart
 let DATA = { bd:[], coloc:[], metas:{}, desMetas:[] };
 const ARCHIVO = 'datos.xlsm';
 
+/* ================= CRUCE DESEMBOLSO: COLOCACIÓN <-> RADICACIÓN (Hoja BD), por LLAVE =================
+   Cada vez que se carga/actualiza la hoja COLOCACIÓN, se cruza por la columna LLAVE con la columna
+   "Fecha de Liquidación 2" de esa misma hoja. Cuando hay coincidencia con la LLAVE de un registro de la
+   Base de Radicación (Hoja BD), se toma esa fecha como FECHA DESEMBOLSO y el ESTADO pasa a DESEMBOLSADO.
+   Además, se muestra una alerta con los clientes (LLAVE) que aparecen en COLOCACIÓN y todavía no existen
+   en la Base de Radicación. */
+let COLOC_COL_LLAVE = null;
+let COLOC_COL_FECHA_DESEMB = null;
+let COLOC_COL_NOMBRE = null;
+let COLOC_COL_CEDULA = null;
+let ULTIMA_ALERTA_NUEVOS_HASH = null;
+
+function normalizarTextoCol(s){
+  return String(s==null?'':s)
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toUpperCase().replace(/[^A-Z0-9]/g,'');
+}
+function detectarColumnaColoc(rows, tokensRequeridos){
+  const claves = new Set();
+  (rows||[]).forEach(function(r){ Object.keys(r).forEach(function(k){ claves.add(k); }); });
+  let encontrada = null;
+  claves.forEach(function(k){
+    if(encontrada) return;
+    const norm = normalizarTextoCol(k);
+    const cumple = tokensRequeridos.every(function(t){ return norm.indexOf(t)>-1; });
+    if(cumple) encontrada = k;
+  });
+  return encontrada;
+}
+function detectarColumnasColocacion(){
+  if(!DATA.coloc.length) return;
+  const muestra = DATA.coloc[0] || {};
+  // Nombres exactos conocidos del archivo COOPEBIS (hoja COLOCACION)
+  if(!COLOC_COL_LLAVE) COLOC_COL_LLAVE = ('LLAVE' in muestra) ? 'LLAVE' : detectarColumnaColoc(DATA.coloc, ['LLAVE']);
+  if(!COLOC_COL_FECHA_DESEMB){
+    COLOC_COL_FECHA_DESEMB = ('Fec Liquidación' in muestra) ? 'Fec Liquidación'
+      : detectarColumnaColoc(DATA.coloc, ['FECLIQUIDACION'])
+      || detectarColumnaColoc(DATA.coloc, ['FECHA','LIQUIDACION','DOS'])
+      || detectarColumnaColoc(DATA.coloc, ['FECHA','LIQUIDACION','2'])
+      || detectarColumnaColoc(DATA.coloc, ['LIQUIDACION','DOS'])
+      || detectarColumnaColoc(DATA.coloc, ['LIQUIDACION2']);
+  }
+  if(!COLOC_COL_NOMBRE) COLOC_COL_NOMBRE = ('Asociado' in muestra) ? 'Asociado' : (detectarColumnaColoc(DATA.coloc, ['NOMBRE']) || detectarColumnaColoc(DATA.coloc, ['ASOCIADO']));
+  if(!COLOC_COL_CEDULA) COLOC_COL_CEDULA = ('Identificación' in muestra) ? 'Identificación' : (detectarColumnaColoc(DATA.coloc, ['CEDULA']) || detectarColumnaColoc(DATA.coloc, ['IDENTIFICACION']) || detectarColumnaColoc(DATA.coloc, ['DOCUMENTO']));
+}
+function formatearFechaDesembolsoValor(raw){
+  if(raw instanceof Date && !isNaN(raw)) return raw.toISOString().slice(0,10);
+  if(raw==null || raw==='') return null;
+  const d = new Date(raw);
+  if(!isNaN(d)) return d.toISOString().slice(0,10);
+  return String(raw).trim() || null;
+}
+
+async function cruzarDesembolsosConColocacion(esCargaColocacion){
+  if(!ES_ADMIN || !db) return;
+  if(!DATA.coloc.length || !window.RADICACIONES_CACHE) return;
+  detectarColumnasColocacion();
+  if(!COLOC_COL_LLAVE || !COLOC_COL_FECHA_DESEMB){
+    console.warn('No se encontró la columna LLAVE y/o "Fecha de Liquidación 2" en la hoja COLOCACIÓN. Verifica los encabezados del archivo.', {COLOC_COL_LLAVE:COLOC_COL_LLAVE, COLOC_COL_FECHA_DESEMB:COLOC_COL_FECHA_DESEMB});
+    return;
+  }
+
+  // Mapa LLAVE (colocación) -> { fecha, nombre, cedula }
+  const mapaColoc = {};
+  DATA.coloc.forEach(function(r){
+    const llave = String(r[COLOC_COL_LLAVE]==null?'':r[COLOC_COL_LLAVE]).trim();
+    if(!llave) return;
+    const fecha = formatearFechaDesembolsoValor(r[COLOC_COL_FECHA_DESEMB]);
+    const info = { fecha:fecha, nombre: COLOC_COL_NOMBRE ? r[COLOC_COL_NOMBRE] : '', cedula: COLOC_COL_CEDULA ? r[COLOC_COL_CEDULA] : '' };
+    if(fecha || !mapaColoc[llave]) mapaColoc[llave] = info;
+  });
+
+  const llavesRadicacion = new Set();
+  (window.RADICACIONES_CACHE||[]).forEach(function(r){ if(r['LLAVE']) llavesRadicacion.add(String(r['LLAVE']).trim()); });
+
+  // 1) Actualizar FECHA DESEMBOLSO / ESTADO en la Base de Radicación cuando cruce por LLAVE
+  const actualizaciones = [];
+  (window.RADICACIONES_CACHE||[]).forEach(function(r){
+    const llave = r['LLAVE'] ? String(r['LLAVE']).trim() : '';
+    if(!llave) return;
+    const encontrado = mapaColoc[llave];
+    if(!encontrado || !encontrado.fecha) return;
+    const yaCoincide = (r['FECHA DESEMBOLSO']===encontrado.fecha) && (r['ESTADO']==='DESEMBOLSADO');
+    if(!yaCoincide) actualizaciones.push({ id:r._id, fecha:encontrado.fecha });
+  });
+
+  if(actualizaciones.length){
+    try{
+      const batch = db.batch();
+      actualizaciones.forEach(function(u){
+        batch.set(radicacionesColRef().doc(u.id), {
+          'FECHA DESEMBOLSO': u.fecha,
+          'ESTADO': 'DESEMBOLSADO',
+          actualizadoEn: firebase.firestore.FieldValue.serverTimestamp()
+        }, {merge:true});
+      });
+      await batch.commit();
+    }catch(e){ console.error('Error actualizando FECHA DESEMBOLSO desde COLOCACIÓN:', e); }
+  }
+
+  // 2) Alerta de clientes nuevos: LLAVE presente en COLOCACIÓN (con desembolso reciente) pero ausente en Radicación.
+  //    Se limita a los últimos DIAS_VENTANA_NUEVOS_COLOCACION días para no listar todo el histórico del archivo.
+  if(esCargaColocacion){
+    const DIAS_VENTANA_NUEVOS_COLOCACION = 45;
+    const fechaLimite = new Date();
+    fechaLimite.setDate(fechaLimite.getDate() - DIAS_VENTANA_NUEVOS_COLOCACION);
+    const nuevos = [];
+    Object.keys(mapaColoc).forEach(function(llave){
+      if(llavesRadicacion.has(llave)) return;
+      const info = mapaColoc[llave];
+      if(!info.fecha) return;
+      const fechaInfo = new Date(info.fecha);
+      if(isNaN(fechaInfo) || fechaInfo < fechaLimite) return;
+      let etiqueta = '';
+      if(info.nombre) etiqueta += titleCase(info.nombre) + ' — ';
+      if(info.cedula) etiqueta += 'C.C. ' + info.cedula + ' — ';
+      etiqueta += 'Desembolso: ' + info.fecha + ' — Llave: ' + llave;
+      nuevos.push(etiqueta);
+    });
+    if(nuevos.length){
+      const hash = nuevos.slice().sort().join('|');
+      if(hash !== ULTIMA_ALERTA_NUEVOS_HASH){
+        ULTIMA_ALERTA_NUEVOS_HASH = hash;
+        const maxMostrar = 25;
+        let texto = 'Se encontraron ' + nuevos.length + ' cliente(s) desembolsados en COLOCACIÓN (últimos ' + DIAS_VENTANA_NUEVOS_COLOCACION + ' días) que no existen en la Base de Radicación (Hoja BD):\n\n' + nuevos.slice(0, maxMostrar).join('\n');
+        if(nuevos.length > maxMostrar) texto += '\n… y ' + (nuevos.length - maxMostrar) + ' más.';
+        alert(texto);
+      }
+    }
+  }
+}
+
 async function cargarDatos(){
   const s1=document.getElementById('statusCol'), s2=document.getElementById('statusGes'), s3=document.getElementById('homeStatus');
   [s1,s2].forEach(function(s){ if(s){ s.textContent='Actualizando…'; s.className='status'; }});
@@ -2089,6 +2225,7 @@ async function cargarDatos(){
     const desMetasSheet = wb.Sheets['DESEMBOLSO VS METAS'];
 
     DATA.coloc = colocSheet ? trimKeys(XLSX.utils.sheet_to_json(colocSheet,{defval:''})) : [];
+    COLOC_COL_LLAVE = null; COLOC_COL_FECHA_DESEMB = null; COLOC_COL_NOMBRE = null; COLOC_COL_CEDULA = null;
     const metasRows = metasSheet ? trimKeys(XLSX.utils.sheet_to_json(metasSheet,{defval:''})) : [];
     DATA.metas = metasRows[0] || {};
     DATA.desMetas = desMetasSheet ? trimKeys(XLSX.utils.sheet_to_json(desMetasSheet,{defval:''})).filter(function(r){return r['OFICINA'];}) : [];
@@ -2097,6 +2234,7 @@ async function cargarDatos(){
     initColFilters();
     renderColocacion();
     if(DATA.bd.length) renderGestion();
+    await cruzarDesembolsosConColocacion(true);
 
     const okMsg = 'Actualizado ' + new Date().toLocaleTimeString('es-CO');
     if(s1){ s1.textContent=okMsg; s1.className='status ok'; }
