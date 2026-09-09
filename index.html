@@ -9,6 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -196,6 +197,68 @@
   .gauge-wrap canvas{max-width:100%;max-height:100%;}
   .footer-note{font-size:10px;color:var(--texto-sec);margin-top:8px;}
   .full-width{grid-column:1 / -1;}
+
+  /* ===== Admin: Radicación / Anticipos (CRUD en línea) ===== */
+  .btn-add-dark{
+    background:var(--azul-primario);color:#FFFFFF;border:1px solid var(--azul-primario);border-radius:8px;
+    padding:10px 18px;font-family:'Poppins';font-size:12.5px;font-weight:700;cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px;transition:box-shadow .15s ease,transform .1s ease;
+  }
+  .btn-add-dark:hover{box-shadow:0 0 14px rgba(1,46,63,.5);transform:translateY(-1px);}
+  .btn-secondary-outline{
+    background:transparent;border:1px solid var(--azul-comp1);color:var(--azul-comp1);border-radius:8px;
+    padding:9px 16px;font-family:'Poppins';font-size:12px;font-weight:600;cursor:pointer;transition:.15s;
+  }
+  .btn-secondary-outline:hover{background:var(--azul-comp1);color:#fff;}
+  .btn-danger-outline{
+    background:transparent;border:1px solid var(--rojo);color:var(--rojo);border-radius:7px;
+    padding:6px 10px;font-family:'Poppins';font-size:10.5px;font-weight:600;cursor:pointer;transition:.15s;
+  }
+  .btn-danger-outline:hover{background:var(--rojo);color:#fff;}
+  .btn-edit-outline{
+    background:transparent;border:1px solid var(--dorado);color:#8a6a2f;border-radius:7px;
+    padding:6px 10px;font-family:'Poppins';font-size:10.5px;font-weight:600;cursor:pointer;transition:.15s;margin-right:6px;
+  }
+  .btn-edit-outline:hover{background:var(--dorado);color:var(--azul-primario);}
+  .admin-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;justify-content:space-between;}
+  .admin-toolbar .left-group{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .admin-toolbar .right-group{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .saldo-banner{
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    background:var(--panel);border:1px solid var(--borde);border-left:5px solid var(--azul-primario);
+    border-radius:10px;padding:16px 20px;margin-bottom:16px;box-shadow:0 3px 10px rgba(0,0,0,.08);
+  }
+  .saldo-banner .lbl{font-size:10.5px;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.4px;}
+  .saldo-banner .val{font-size:24px;font-weight:700;color:var(--azul-primario);}
+  .modal-backdrop{
+    display:none;position:fixed;inset:0;background:rgba(1,46,63,.55);z-index:300;
+    align-items:flex-start;justify-content:center;overflow-y:auto;padding:36px 14px;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal-panel{
+    background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:26px 28px 24px;
+    max-width:760px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.35);margin:auto;
+  }
+  .modal-panel h3{margin:0 0 4px;font-size:16px;color:var(--azul-primario);}
+  .modal-panel .sub{font-size:11.5px;color:var(--texto-sec);margin:0 0 18px;}
+  .modal-close{position:relative;float:right;background:transparent;border:none;font-size:20px;color:var(--texto-sec);cursor:pointer;line-height:1;}
+  .modal-section-title{
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--azul-comp1);
+    margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--borde);
+  }
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+  .radio-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;}
+  .radio-card-grid label{
+    font-size:11.5px;color:var(--texto);display:flex;align-items:center;gap:7px;cursor:pointer;font-weight:400;
+    background:var(--panel-2);border:1px solid var(--borde);border-radius:7px;padding:8px 10px;
+  }
+  .radio-card-grid input[type=radio]:checked + span, .radio-card-grid label:has(input:checked){
+    border-color:var(--azul-comp1);
+  }
+  .form-msg{font-size:11.5px;margin-top:10px;min-height:16px;}
+  .import-note{font-size:10.5px;color:var(--texto-sec);margin-top:8px;}
+  .table-actions{white-space:nowrap;}
+  #tableRadicacion, #tableAnticipos{font-size:11px;}
 </style>
 </head>
 <body>
@@ -519,6 +582,8 @@
       <button class="nav-btn" data-view="gestion">Gestión Externos</button>
       <button class="nav-btn" data-view="admin" id="navAdmin" style="display:none;">Panel Admin</button>
       <button class="nav-btn" data-view="actualizaciones" id="navActualizaciones" style="display:none;">Actualizaciones de Datos</button>
+      <button class="nav-btn" data-view="radicacion" id="navRadicacion" style="display:none;">Radicación</button>
+      <button class="nav-btn" data-view="anticipos" id="navAnticipos" style="display:none;">Anticipos</button>
     </div>
     <div class="right-actions">
       <div style="position:relative;">
@@ -691,6 +756,140 @@
     </div>
   </div>
 
+  <div class="view" id="view-radicacion">
+    <div class="admin-toolbar">
+      <div class="left-group">
+        <button class="btn-add-dark" id="btnAgregarRadicacion">+ Agregar</button>
+        <button class="btn-secondary-outline" id="btnDescargarBD">Descargar informe Excel</button>
+        <button class="btn-secondary-outline" id="btnImportarHistoricoBD">Importar base histórica BD</button>
+      </div>
+      <div class="right-group">
+        <div class="search-box"><input type="text" id="searchRadicacion" placeholder="Buscar por nombre o cédula…"></div>
+        <span class="status" id="statusRadicacion"></span>
+      </div>
+    </div>
+    <div class="import-note" id="importNoteRadicacion"></div>
+
+    <div class="card full-width">
+      <div class="card-title">Base de radicación (Hoja BD) <span class="tag" id="tagRadicacionCount">0 registros</span></div>
+      <div class="table-scroll full">
+        <table id="tableRadicacion">
+          <thead><tr>
+            <th>Código</th><th>Mes</th><th>Cédula</th><th>Nombre</th><th>Fecha</th><th>Radicación</th>
+            <th>Tipo crédito</th><th>Estado</th><th>Valor</th><th>Tipo contrato</th><th>Entidad</th><th>Asesor</th>
+            <th>Observación</th><th>Acciones</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-anticipos">
+    <div class="admin-toolbar">
+      <div class="left-group">
+        <button class="btn-add-dark" id="btnAgregarAnticipo">+ Agregar</button>
+      </div>
+      <div class="right-group">
+        <div class="search-box"><input type="text" id="searchAnticipo" placeholder="Buscar por asesor o concepto…"></div>
+        <span class="status" id="statusAnticipo"></span>
+      </div>
+    </div>
+
+    <div class="saldo-banner">
+      <div><div class="lbl">Saldo actual de anticipos</div><div class="val" id="saldoActualAnticipos">$0</div></div>
+      <div><div class="lbl">Total egresos registrados</div><div class="val" style="color:var(--rojo);font-size:18px;" id="totalEgresosAnticipos">$0</div></div>
+    </div>
+
+    <div class="card full-width">
+      <div class="card-title">Control de anticipos <span class="tag" id="tagAnticiposCount">0 registros</span></div>
+      <div class="table-scroll full">
+        <table id="tableAnticipos">
+          <thead><tr>
+            <th>Fecha</th><th>Asesor</th><th>Concepto</th><th>Egreso</th><th>Saldo</th><th>Estado</th><th>Observaciones</th><th>Acciones</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalRadicacionBackdrop" class="modal-backdrop">
+    <div class="modal-panel">
+      <button class="modal-close" id="btnCerrarModalRadicacion">&times;</button>
+      <h3 id="tituloModalRadicacion">Registro de Datos</h3>
+      <p class="sub">Datos crédito — hoja BD / Radicación</p>
+
+      <input type="hidden" id="rad_docId">
+      <div class="modal-section-title">Datos crédito</div>
+      <div class="form-grid">
+        <div class="form-field"><label>Mes</label><input type="number" id="rad_mes" min="1" max="12" placeholder="Ej: 9"></div>
+        <div class="form-field"><label>Código</label><input type="number" id="rad_codigo"></div>
+        <div class="form-field"><label>Cédula</label><input type="number" id="rad_cedula"></div>
+        <div class="form-field"><label>Nombre</label><input type="text" id="rad_nombre" style="text-transform:uppercase;"></div>
+        <div class="form-field"><label>Tipo de crédito</label>
+          <select id="rad_tipo_credito"></select>
+        </div>
+        <div class="form-field"><label>Fecha radicación</label><input type="date" id="rad_fecha"></div>
+        <div class="form-field"><label>Radicación</label><input type="number" id="rad_radicacion"></div>
+        <div class="form-field"><label>Valor</label><input type="number" id="rad_valor" step="1000"></div>
+        <div class="form-field"><label>Estado</label>
+          <select id="rad_estado"></select>
+        </div>
+        <div class="form-field"><label>Asesor</label>
+          <select id="rad_asesor"></select>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="form-field full-width"><label>Observaciones</label><textarea id="rad_observacion" rows="3"></textarea></div>
+        <div class="form-field full-width"><label>Entidad</label>
+          <input type="text" id="rad_entidad" list="listaEntidades" style="text-transform:uppercase;">
+          <datalist id="listaEntidades"></datalist>
+        </div>
+      </div>
+
+      <div class="modal-section-title">Tipo de contrato</div>
+      <div class="radio-card-grid" id="rad_tipo_contrato_grid"></div>
+
+      <div class="form-msg" id="radFormMsg"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary-outline" id="btnCancelarRadicacion">Cancelar</button>
+        <button class="btn-add-dark" id="btnGuardarRadicacion">REGISTRAR</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalAnticipoBackdrop" class="modal-backdrop">
+    <div class="modal-panel" style="max-width:520px;">
+      <button class="modal-close" id="btnCerrarModalAnticipo">&times;</button>
+      <h3 id="tituloModalAnticipo">Registro de anticipo</h3>
+      <p class="sub">Control de anticipos</p>
+      <input type="hidden" id="ant_docId">
+      <div class="form-grid">
+        <div class="form-field"><label>Fecha</label><input type="date" id="ant_fecha"></div>
+        <div class="form-field"><label>Asesor</label>
+          <input type="text" id="ant_asesor" list="listaAsesoresAnticipo" style="text-transform:uppercase;">
+          <datalist id="listaAsesoresAnticipo"></datalist>
+        </div>
+        <div class="form-field full-width"><label>Concepto</label><input type="text" id="ant_concepto"></div>
+        <div class="form-field"><label>Egreso</label><input type="number" id="ant_egreso" step="100"></div>
+        <div class="form-field"><label>Estado</label>
+          <select id="ant_estado">
+            <option>PENDIENTE</option>
+            <option>LEGALIZO</option>
+            <option>DEVOLUCION</option>
+          </select>
+        </div>
+        <div class="form-field full-width"><label>Observaciones</label><textarea id="ant_observaciones" rows="2"></textarea></div>
+      </div>
+      <div class="form-msg" id="antFormMsg"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary-outline" id="btnCancelarAnticipo">Cancelar</button>
+        <button class="btn-add-dark" id="btnGuardarAnticipo">REGISTRAR</button>
+      </div>
+    </div>
+  </div>
+
   <div id="formLinkModalBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;">
     <div style="background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:24px 26px;max-width:440px;width:90%;box-shadow:0 14px 44px rgba(0,0,0,.35);">
       <h3 style="margin:0 0 6px;color:var(--texto);font-size:15px;">Link del formulario de crédito</h3>
@@ -796,12 +995,492 @@ async function cerrarSesionAjena(id){
   try{ await db.collection('sesiones').doc(id).update({activo:false}); }catch(e){}
 }
 
+
+/* ============================================================
+   RADICACIÓN (hoja BD) + ANTICIPOS — en línea con Firestore
+   Solo editable por el administrador (ES_ADMIN). La vista
+   "Gestión Externos" se alimenta en vivo desde DATA.bd, que a
+   partir de ahora se llena con estos datos (ya no del .xlsm).
+   ============================================================ */
+
+const TIPOS_CREDITO_RAD = ['ORDINARIO','PREF ORDINARIO','PREF COMPRA CARTERA','COMPRA CARTERA','PREF VIVIENDA','PREF VEHICULO','PATRIMONIAL','PATRIMONIAL 1-1','PATRIMONIAL 1-2','BIENESTAR','CREDIFACIL','CREDIPRIMA','EDUCATIVO'];
+const ESTADOS_BD_LISTA = ['EN RECEPCION','ESTUDIO ANALISTA LIDER','ESTUDIO JEFE DE CREDITO','CONCEPTO GERENTE','COMITÉ DE CREDITO','LISTO PARA DESEMBOLSO','DESEMBOLSADO','DEVOLUCION','ANULADO'];
+const TIPOS_CONTRATO_RAD = ['Carrera administrativa/propiedad','Provisionalidad','Libre Nombramiento y remocion','Indefinido','Pensionado','Planta Temporal','Termino Fijo','Contratista','Familiar','Independiente'];
+const ASESORES_RADICACION = ['LEONELA BUENO','ALEJANDRO CONTENTO','INGRID PEDRAZA','CAMILA CASTAÑEDA'];
+const ENTIDADES_LISTA_RAD = ["Alcaldía Mayor general", "Caja de vivienda popular", "Canal Capital", "Catastro", "Colpensiones", "Concejo De Bogotá", "Contraloría", "Coopebis", "Departamento de Planeacion", "Dpto Admtivo de Planeación Distrital", "Dpto Admtivo Defensoría del Espacio Público - DADEP", "Dpto Admtivo del Servicio Civíl Distrital - DASCD", "Etb", "Fer", "Fiduprevisora", "Fopep", "Funcionarios (FONCEP)", "Fundación Gilberto Alzate", "Idartes", "Idep", "Idiger", "Idipron", "Idpac", "Idrd", "Instituto de Desarrollo Urbano IDU", "Instituto Distrital de Patrimonio y Cultura", "Instituto Distrital de Turismo", "Integracion Social", "Invias", "Ipes", "Jardín Botánico", "Loteria de Bogota", "Metro de Bogota", "Ministerio de trabajo - Contabilidad", "Orquesta Filarmonica de Bogotá", "Pensionados (FONCEP)", "Personería de Bogotá", "Positiva", "Procuraduria", "Proteccion Animal", "Region Metropolitana", "Renobo", "Secretaria de Cultura Recreación y Deporte", "Secretaría de Educación Distrital – SED", "Secretaria de Educación y Docentes", "Secretaría de Gobierno Distrital", "Secretaría de Hacienda Distrital", "Secretaría de la Mujer", "Secretaria De Salud", "Secretaria de Seguridad, Convivencia y Justicia", "Secretaría del Habitat", "Secretaria Distrital de Ambiente", "Secretaria Distrital de Movilidad", "Secretaría Distrital Desarrollo Económico", "Secretaria Juridica Distrital", "Sub Red Centro Oriente", "Sub Red Norte", "Sub Red Occidente", "Sub Red Sur", "TransMilenio", "Uapa", "Unidad Adm. Especial COB", "Unidad Admtiva de Rehabilitación y Manto Vial", "Unidad Ejecutiva de Servicios Públicos – UESP", "Universidad Distrital", "Veeduria Distrital"];
+const ASESORES_ANTICIPO_LISTA = ["LEONELA BUENO", "ALEJANDRO CONTENTO", "INGRID PEDRAZA", "ANYILENY RODRIGUEZ", "JORDAN AGUILAR", "KAREN CELY", "ERIKA RAIGOSO", "DIANA RODRIGUEZ", "JONATHAN VARGAS", "ANIBAL RIVERA", "PAULA ANDREA GARZON", "DIEGO TRANSPORTE", "DIEGO MORENO"];
+
+/* Base histórica de la hoja BD del Excel adjunto (237 registros), para importar una sola vez a Firestore */
+const BD_HISTORICO = [{"CODIGO":240,"MES":9,"CEDULA":52098492,"NOMBRE":"VELANDIA LEON LIGIA MARLEN","FECHA":"2026-09-07","RADICACION":261005196,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"EN RECEPCION","VALOR":60000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"UNIDAD EJECUTIVA DE SERVICIOS PÚBLICOS – UESP ","ASESOR":"LEONELA BUENO","OBSERVACION":null,"ADICIONAL":null,"LLAVE":"5209849260000000","FECHA DESEMBOLSO":"-"},{"CODIGO":239,"MES":9,"CEDULA":43601686,"NOMBRE":"SUATERNA HURTADO ADRIANA CECILIA","FECHA":"2026-09-07","RADICACION":261005192,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"EN RECEPCION","VALOR":35500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"INTEGRACION SOCIAL ","ASESOR":"LEONELA BUENO","OBSERVACION":null,"ADICIONAL":null,"LLAVE":"4360168635500000","FECHA DESEMBOLSO":"-"},{"CODIGO":238,"MES":9,"CEDULA":53140338,"NOMBRE":"HERNANDEZ BARRERA NIDIA GEILER","FECHA":"2026-09-07","RADICACION":261005189,"TIPO CREDITO":"ORDINARIO ","ESTADO":"EN RECEPCION","VALOR":15500000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":null,"ADICIONAL":null,"LLAVE":"5314033815500000","FECHA DESEMBOLSO":"-"},{"CODIGO":237,"MES":9,"CEDULA":19491439,"NOMBRE":"TORRES JAIMES JOHN JAVIER","FECHA":"2026-09-07","RADICACION":261005184,"TIPO CREDITO":"ORDINARIO ","ESTADO":"EN RECEPCION","VALOR":8500000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":null,"ADICIONAL":null,"LLAVE":"194914398500000","FECHA DESEMBOLSO":"-"},{"CODIGO":236,"MES":9,"CEDULA":28956095,"NOMBRE":"GONZALEZ VARGAS ALEJANDRA","FECHA":"2026-09-07","RADICACION":261005181,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"EN RECEPCION","VALOR":66490000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"SECRETARIA DISTRITAL DE MOVILIDAD ","ASESOR":"INGRID PEDRAZA","OBSERVACION":null,"ADICIONAL":null,"LLAVE":"2895609566490000","FECHA DESEMBOLSO":"-"},{"CODIGO":234,"MES":9,"CEDULA":3020252,"NOMBRE":"SALAZAR PERDOMO FABER HUMBERTO ","FECHA":"2026-09-07","RADICACION":261005131,"TIPO CREDITO":"ORDINARIO ","ESTADO":"EN RECEPCION","VALOR":6850000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"ASIGNAR ANALISTA","ADICIONAL":null,"LLAVE":"30202526850000","FECHA DESEMBOLSO":"-"},{"CODIGO":232,"MES":9,"CEDULA":15353022,"NOMBRE":"BOTERO TORO CAMILO ANTONIO","FECHA":"2026-09-05","RADICACION":261005158,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DEVOLUCION","VALOR":2500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"ASIGNAR ANALISTA","ADICIONAL":null,"LLAVE":"153530222500000","FECHA DESEMBOLSO":"-"},{"CODIGO":235,"MES":9,"CEDULA":3020252,"NOMBRE":"SALAZAR PERDOMO FABER HUMBERTO","FECHA":"2026-09-04","RADICACION":261005187,"TIPO CREDITO":"ORDINARIO ","ESTADO":"EN RECEPCION","VALOR":50000000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"ASIGNAR ANALISTA","ADICIONAL":null,"LLAVE":"302025250000000","FECHA DESEMBOLSO":"-"},{"CODIGO":233,"MES":9,"CEDULA":1030689584,"NOMBRE":"ORBEGOZO GALVEZ PAULA JULIANA","FECHA":"2026-09-03","RADICACION":261005105,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"LISTO PARA DESEMBOLSO","VALOR":2000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"PENDIENTE PAGARE Y RESPUESTA DE LIBRANZA","ADICIONAL":null,"LLAVE":"10306895842000000","FECHA DESEMBOLSO":"-"},{"CODIGO":231,"MES":9,"CEDULA":51807766,"NOMBRE":"JATIVA GARCIA MARIA ELIZABETH","FECHA":"2026-09-02","RADICACION":261005088,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"LISTO PARA DESEMBOLSO","VALOR":15000000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"PENDIENTE FIRMA PAGARE.","ADICIONAL":null,"LLAVE":"5180776615000000","FECHA DESEMBOLSO":"-"},{"CODIGO":230,"MES":9,"CEDULA":3020252,"NOMBRE":"SALAZAR PERDOMO FABER HUMBERTO","FECHA":"2026-09-02","RADICACION":261005066,"TIPO CREDITO":"ORDINARIO ","ESTADO":"EN RECEPCION","VALOR":50000000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"ASIGNAR ANALISTA","ADICIONAL":null,"LLAVE":"302025250000000","FECHA DESEMBOLSO":"-"},{"CODIGO":229,"MES":9,"CEDULA":80244703,"NOMBRE":"ROBAYO GONZALEZ HERNANDO","FECHA":"2026-09-02","RADICACION":261005083,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"LISTO PARA DESEMBOLSO","VALOR":3600000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DISTRITAL DE MOVILIDAD ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"PENDIENTE PAGARE Y RESPUESTA DE LIBRANZA","ADICIONAL":null,"LLAVE":"802447033600000","FECHA DESEMBOLSO":"-"},{"CODIGO":228,"MES":9,"CEDULA":52316271,"NOMBRE":"SUESCA ORTIZ SANDRA PATRICIA","FECHA":"2026-09-02","RADICACION":261005079,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"EN RECEPCION","VALOR":26000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"FONCEP EMPLEADOS","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"SE SOLICITO DOCUMENTOS ADICIONALES PARA DESEMBOLSO,BENEFICIARIO FINAL,EXTRACTO CARTERA A CANCELAR Y DESPRENDIBLE AGOSTO","ADICIONAL":null,"LLAVE":"5231627126000000","FECHA DESEMBOLSO":"-"},{"CODIGO":227,"MES":9,"CEDULA":52027017,"NOMBRE":"REY PAEZ LUZ ANGELA","FECHA":"2026-09-02","RADICACION":261005034,"TIPO CREDITO":"ORDINARIO ","ESTADO":"ESTUDIO JEFE DE CREDITO","VALOR":25023000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"SUB RED SUR ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"PENDIENTE ANALISIS JEFE DE CREDITO ","ADICIONAL":null,"LLAVE":"5202701725023000","FECHA DESEMBOLSO":"-"},{"CODIGO":226,"MES":9,"CEDULA":80242982,"NOMBRE":"BUSTAMANTE ALVAREZ WEISNER ANDRES","FECHA":"2026-09-02","RADICACION":261005032,"TIPO CREDITO":"PATRIMONIAL 1-1","ESTADO":"DESEMBOLSADO","VALOR":18390000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":null,"LLAVE":"8024298218390000","FECHA DESEMBOLSO":"00:00:00"},{"CODIGO":225,"MES":9,"CEDULA":1022967812,"NOMBRE":"CARREÑO GARZON DUVAN MAURICIO","FECHA":"2026-09-02","RADICACION":261005031,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"ESTUDIO JEFE DE CREDITO","VALOR":43000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"REALIZAR SEGUIMIENTO A LA RESPUESTA DE LA ASEGURABILIDAD PARA EL ENVÍO DE LA LIBRANZA A LA ENTIDAD.","ADICIONAL":null,"LLAVE":"102296781243000000","FECHA DESEMBOLSO":"-"},{"CODIGO":224,"MES":9,"CEDULA":52165287,"NOMBRE":"PRIETO RODRIGUEZ CLAUDIA JULIETH","FECHA":"2026-09-02","RADICACION":261005036,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"ESTUDIO ANALISTA LIDER","VALOR":6513000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"CATASTRO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"PENDIENTE ANALISIS ANALISTA LIDER ","ADICIONAL":null,"LLAVE":"521652876513000","FECHA DESEMBOLSO":"-"},{"CODIGO":223,"MES":9,"CEDULA":24059644,"NOMBRE":"FIGUEREDO SANDOVAL ANA ELYS","FECHA":"2026-09-01","RADICACION":261005061,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"ESTUDIO ANALISTA LIDER","VALOR":2000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"ORQUESTA FILARMONICA DE BOGOTÁ ","ASESOR":"LEONELA BUENO","OBSERVACION":"SOLICITUD DE AJUSTE  DE ANALISTA EN ANALISIS DE CREDITO","ADICIONAL":null,"LLAVE":"240596442000000","FECHA DESEMBOLSO":"2026-02-10"},{"CODIGO":222,"MES":9,"CEDULA":1012444615,"NOMBRE":"SANCHEZ VELASCO JENNY LUCERO","FECHA":"2026-09-01","RADICACION":261005053,"TIPO CREDITO":"ORDINARIO ","ESTADO":"ESTUDIO ANALISTA LIDER","VALOR":4000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"ALCALDÍA MAYOR GENERAL ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"PENDIENTE ANALISIS ANALISTA LIDER ","ADICIONAL":null,"LLAVE":"10124446154000000","FECHA DESEMBOLSO":"-"},{"CODIGO":221,"MES":9,"CEDULA":51941717,"NOMBRE":"PINZON VEGA NANCY EDILMA","FECHA":"2026-09-01","RADICACION":261005047,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"EN RECEPCION","VALOR":21000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"ASOCIADA NO PRESENTA CAPACIDAD DE PAGO","ADICIONAL":null,"LLAVE":"5194171721000000","FECHA DESEMBOLSO":"-"},{"CODIGO":220,"MES":8,"CEDULA":51941717,"NOMBRE":"PINZON VEGA NANCY EDILMA","FECHA":"2026-08-31","RADICACION":261005039,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"EN RECEPCION","VALOR":20020000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"LEONELA BUENO","OBSERVACION":"ASOCIADA NO PRESENTA CAPACIDAD DE PAGO","ADICIONAL":null,"LLAVE":"5194171720020000","FECHA DESEMBOLSO":"-"},{"CODIGO":219,"MES":8,"CEDULA":80221218,"NOMBRE":"MARZAN CORTES DIEGO NICOLAS","FECHA":"2026-08-29","RADICACION":261005015,"TIPO CREDITO":"ORDINARIO ","ESTADO":"EN RECEPCION","VALOR":5000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DISTRITAL DE MOVILIDAD ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"PENDIENTE FIRMA DE PAGARE","ADICIONAL":null,"LLAVE":"802212185000000","FECHA DESEMBOLSO":"-"},{"CODIGO":218,"MES":8,"CEDULA":1020816927,"NOMBRE":"HERRERA RODRIGUEZ MONICA","FECHA":"2026-08-28","RADICACION":261005008,"TIPO CREDITO":"EDUCATIVO ","ESTADO":"DESEMBOLSADO","VALOR":15879353,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":null,"LLAVE":"102081692715879353","FECHA DESEMBOLSO":"00:00:00"},{"CODIGO":217,"MES":8,"CEDULA":16192213,"NOMBRE":"NIETO GUEVARA HIPOLITO","FECHA":"2026-08-28","RADICACION":261005010,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":62200000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DISTRITAL DE MOVILIDAD ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":null,"LLAVE":"1619221362200000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":216,"MES":8,"CEDULA":52835481,"NOMBRE":"MOLINA VILLARRAGA CAROLINA","FECHA":"2026-08-28","RADICACION":261005002,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":53000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"METRO DE BOGOTA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":null,"LLAVE":"5283548153000000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":215,"MES":8,"CEDULA":82383991,"NOMBRE":"MURILLO PEREA CARLOS MARIA","FECHA":"2026-08-28","RADICACION":261005000,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":120300000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":null,"LLAVE":"82383991120300000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":214,"MES":8,"CEDULA":39747207,"NOMBRE":"CIRO FLOREZ GLORIA AMPARO","FECHA":"2026-08-27","RADICACION":261004995,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":20500000,"TIPO DE CONTRATO":"Libre Nombramiento y remocion","ENTIDAD":"ORQUESTA FILARMONICA DE BOGOTÁ ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"3974720720500000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":213,"MES":8,"CEDULA":65706839,"NOMBRE":"BOCANEGRA GOMEZ JUANA MARCELA","FECHA":"2026-08-27","RADICACION":261004996,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":12500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"UNIDAD EJECUTIVA DE SERVICIOS PÚBLICOS – UESP ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"6570683912500000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":212,"MES":8,"CEDULA":52197401,"NOMBRE":"MONSALVE GIRON OLGA LUCIA","FECHA":"2026-08-27","RADICACION":261004965,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":22000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DE SEGURIDAD, CONVIVENCIA Y JUSTICIA ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5219740122000000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":211,"MES":8,"CEDULA":79481948,"NOMBRE":"JOYA MEDINA MAURICIO ","FECHA":"2026-08-27","RADICACION":261004987,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":12900000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"7948194812900000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":210,"MES":8,"CEDULA":1061801415,"NOMBRE":"MUÑOZ LOPEZ MARIA ALEJANDRA","FECHA":"2026-08-27","RADICACION":261004984,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":8530000,"TIPO DE CONTRATO":"indefinido","ENTIDAD":"METRO DE BOGOTA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10618014158530000","FECHA DESEMBOLSO":"00:00:00"},{"CODIGO":209,"MES":8,"CEDULA":1233512206,"NOMBRE":"ARANZAZU QUIROGA JOHNNY DERANXEL","FECHA":"2026-08-27","RADICACION":261004982,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":15000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DEL HABITAT ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"123351220615000000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":208,"MES":8,"CEDULA":1013611807,"NOMBRE":"AVALOS AGUIAR JUAN CAMILO","FECHA":"2026-08-27","RADICACION":261004975,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":79500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DISTRITAL DE MOVILIDAD ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"SOLICITAR PAZ Y SALVO","LLAVE":"101361180779500000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":207,"MES":8,"CEDULA":52772421,"NOMBRE":"MENDOZA BRAND JOHANNA CAROLINA","FECHA":"2026-08-27","RADICACION":261004979,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":4920000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"CATASTRO ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"527724214920000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":206,"MES":8,"CEDULA":1019031184,"NOMBRE":"JIMENEZ ARTEAGA RAYMOND ALEXANDER","FECHA":"2026-08-26","RADICACION":261004967,"TIPO CREDITO":"ORDINARIO ","ESTADO":"ESTUDIO JEFE DE CREDITO","VALOR":49000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"DPTO ADMTIVO DE PLANEACIÓN DISTRITAL ","ASESOR":"LEONELA BUENO","OBSERVACION":"PENDIENTE ANALISIS JEFE DE CREDITO","ADICIONAL":"-","LLAVE":"101903118449000000","FECHA DESEMBOLSO":"-"},{"CODIGO":205,"MES":8,"CEDULA":39646545,"NOMBRE":"GUZMAN GARZON MARIA DEYANIRA","FECHA":"2026-08-26","RADICACION":261004970,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":20500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"3964654520500000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":204,"MES":8,"CEDULA":1015433977,"NOMBRE":"PULGARIN CORONADO ANDREA","FECHA":"2026-08-26","RADICACION":261004964,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":33245000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"101543397733245000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":203,"MES":8,"CEDULA":41748068,"NOMBRE":"ACEVEDO ACEVEDO MARIA BERTHA","FECHA":"2026-08-26","RADICACION":261004836,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":10500000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"4174806810500000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":202,"MES":8,"CEDULA":1075298797,"NOMBRE":"NIETO GUZMAN JOSE DANIEL","FECHA":"2026-08-26","RADICACION":261004961,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":6500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"CONTRALORÍA ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10752987976500000","FECHA DESEMBOLSO":"2026-08-28"},{"CODIGO":201,"MES":8,"CEDULA":1069721676,"NOMBRE":"BELTRAN LINARES JOSE FABIAN ","FECHA":"2026-08-26","RADICACION":261004955,"TIPO CREDITO":"PREF VIVIENDA","ESTADO":"ANULADO","VALOR":103200000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"JARDÍN BOTÁNICO ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"ASOCIADO DESISTIO DE CREDITO","ADICIONAL":"-","LLAVE":"1069721676103200000","FECHA DESEMBOLSO":"-"},{"CODIGO":200,"MES":8,"CEDULA":1014255980,"NOMBRE":"BORDA PEREZ HARTMANN SNETDER","FECHA":"2026-08-26","RADICACION":261004953,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"\tCONCEPTO GERENTE","VALOR":104700000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"UNIDAD ADMTIVA DE REHABILITACIÓN Y MANTO VIAL ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"PENDIENTE GESTION DE LIBRANZA CUMPLE CONDICIONES DE PERIODO DE PRUEBA","ADICIONAL":"-","LLAVE":"1014255980104700000","FECHA DESEMBOLSO":"-"},{"CODIGO":199,"MES":8,"CEDULA":82383991,"NOMBRE":"MURILLO PEREA CARLOS MARIA","FECHA":"2026-08-26","RADICACION":261004951,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":120300000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"82383991120300000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":198,"MES":8,"CEDULA":52969859,"NOMBRE":"HERRERA BOHORQUEZ ADA MARIA","FECHA":"2026-08-26","RADICACION":261004950,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":124000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"52969859124000000","FECHA DESEMBOLSO":"2026-08-28"},{"CODIGO":197,"MES":8,"CEDULA":79463939,"NOMBRE":"GUZMAN JORGE ELIECER","FECHA":"2026-08-26","RADICACION":261004949,"TIPO CREDITO":"PREF VEHICULO ","ESTADO":"COMITÉ DE CREDITO","VALOR":99900000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"DPTO ADMTIVO DE PLANEACIÓN DISTRITAL ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"SE REQUIERE QUE FINALICE SATISFACTORIAMENTE EL PERÍODO DE PRUEBA Y ADQUIERA LA CONDICIÓN DE EMPLEADO EN CARRERA ADMINISTRATIVA, O, EN SU DEFECTO, QUE PRESENTE UN DEUDOR SOLIDARIO QUE CUMPLA CON LOS REQUISITOS DE VIABILIDAD ESTABLECIDOS POR LA COOPERATIVA","ADICIONAL":"-","LLAVE":"7946393999900000","FECHA DESEMBOLSO":"-"},{"CODIGO":196,"MES":8,"CEDULA":40035111,"NOMBRE":"RIVERA ROJAS MARTHA ISABEL","FECHA":"2026-08-25","RADICACION":261004937,"TIPO CREDITO":"CREDIFACIL ","ESTADO":"DESEMBOLSADO","VALOR":1800000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"400351111800000","FECHA DESEMBOLSO":"00:00:00"},{"CODIGO":195,"MES":8,"CEDULA":52009628,"NOMBRE":"CELIS LONGAS KRISTEN SELENY","FECHA":"2026-08-25","RADICACION":261004934,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":16000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"CATASTRO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5200962816000000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":194,"MES":8,"CEDULA":7141006,"NOMBRE":"BARRIOS ORTEGA FERNANDO JOSE","FECHA":"2026-08-25","RADICACION":261004933,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":3600000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DISTRITAL DE MOVILIDAD ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"71410063600000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":192,"MES":8,"CEDULA":35331217,"NOMBRE":"RODRIGUEZ CASTILLO MARTHA LILIA","FECHA":"2026-08-24","RADICACION":261004915,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":33690000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"3533121733690000","FECHA DESEMBOLSO":"00:00:00"},{"CODIGO":191,"MES":8,"CEDULA":79622708,"NOMBRE":"GARCIA SANCHEZ JORGE ENRIQUE","FECHA":"2026-08-24","RADICACION":261004918,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":2970000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"796227082970000","FECHA DESEMBOLSO":"2026-08-27"},{"CODIGO":190,"MES":8,"CEDULA":52492574,"NOMBRE":"ROJAS ORTIZ SANDRA PATRICIA","FECHA":"2026-08-24","RADICACION":261004911,"TIPO CREDITO":"PREF VIVIENDA","ESTADO":"DESEMBOLSADO","VALOR":18600000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"IPES","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5249257418600000","FECHA DESEMBOLSO":"00:00:00"},{"CODIGO":189,"MES":8,"CEDULA":1022962992,"NOMBRE":"AREVALO ATARA SINDY ALEXANDRA","FECHA":"2026-08-24","RADICACION":261004910,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":130000000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"1022962992130000000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":188,"MES":8,"CEDULA":79859975,"NOMBRE":"PULIDO SILVA HELBERT ANDRES","FECHA":"2026-08-24","RADICACION":261004909,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":31210000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"CONCEJO DE BOGOTÁ ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"7985997531210000","FECHA DESEMBOLSO":"2026-08-26"},{"CODIGO":187,"MES":8,"CEDULA":52197401,"NOMBRE":"MONSALVE GIRON OLGA LUCIA","FECHA":"2026-08-24","RADICACION":261004905,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":22000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DE SEGURIDAD, CONVIVENCIA Y JUSTICIA ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5219740122000000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":186,"MES":8,"CEDULA":1049796568,"NOMBRE":"SUAREZ MORA MERY JULIETH ","FECHA":"2026-08-22","RADICACION":261004883,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":85000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"CONTRALORÍA ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"104979656885000000","FECHA DESEMBOLSO":"2026-08-31"},{"CODIGO":185,"MES":8,"CEDULA":1016055712,"NOMBRE":"CHIMBI BARATO RAUL STEVEN ","FECHA":"2026-08-22","RADICACION":261004881,"TIPO CREDITO":"BIENESTAR ","ESTADO":"DESEMBOLSADO","VALOR":8000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DISTRITAL DESARROLLO ECONÓMICO ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10160557128000000","FECHA DESEMBOLSO":"2026-08-27"},{"CODIGO":184,"MES":8,"CEDULA":1016055712,"NOMBRE":"CHIMBI BARATO RAUL STEVEN ","FECHA":"2026-08-22","RADICACION":261004880,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":8000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DISTRITAL DESARROLLO ECONÓMICO ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10160557128000000","FECHA DESEMBOLSO":"2026-08-27"},{"CODIGO":183,"MES":8,"CEDULA":52756343,"NOMBRE":"DIAZ GARCIA NUBIA","FECHA":"2026-08-21","RADICACION":261004851,"TIPO CREDITO":"ORDINARIO ","ESTADO":"ANULADO","VALOR":7000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DE SEGURIDAD, CONVIVENCIA Y JUSTICIA ","ASESOR":"LEONELA BUENO","OBSERVACION":"LIBRANZA NEGADA","ADICIONAL":"-","LLAVE":"527563437000000","FECHA DESEMBOLSO":"-"},{"CODIGO":182,"MES":8,"CEDULA":52823716,"NOMBRE":"GARZON MELO NIDIA ANGELICA","FECHA":"2026-08-21","RADICACION":261004854,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":1900000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"528237161900000","FECHA DESEMBOLSO":"2026-08-22"},{"CODIGO":181,"MES":8,"CEDULA":39747207,"NOMBRE":"CIRO FLOREZ GLORIA AMPARO","FECHA":"2026-08-21","RADICACION":261004858,"TIPO CREDITO":"ORDINARIO ","ESTADO":"ANULADO","VALOR":40500000,"TIPO DE CONTRATO":"Libre Nombramiento y remocion","ENTIDAD":"ORQUESTA FILARMONICA DE BOGOTÁ ","ASESOR":"LEONELA BUENO","OBSERVACION":"ASOCIADA EN EDAD DE PREPRENSIÓN , NO PRESENTA CAPACIDAD DE PAGO NI CAPACIDAD DE PAGO EN CASO DE PENSIÓN","ADICIONAL":"-","LLAVE":"3974720740500000","FECHA DESEMBOLSO":"-"},{"CODIGO":180,"MES":8,"CEDULA":20995130,"NOMBRE":"CHACON ARIZA LILIANA MARIA","FECHA":"2026-08-21","RADICACION":261004855,"TIPO CREDITO":"ORDINARIO ","ESTADO":"ANULADO","VALOR":5500000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"PROCURADURIA ","ASESOR":"LEONELA BUENO","OBSERVACION":"SUMINISTRAR PAZ Y SALVO DE CARTERAS REPORTADAS NEGATIVAMENTE. (SOPORTE DE INSOLVENCIA REGISTRA DEL MES DE ENERO Y A LA FECHA PRESENTA SALDO EN MORA POR VALOR DE $23.733.000). FORMATO PROCURADURÃ­A CON DATOS INCOMPLETOS. .","ADICIONAL":"-","LLAVE":"209951305500000","FECHA DESEMBOLSO":"-"},{"CODIGO":179,"MES":8,"CEDULA":1001219083,"NOMBRE":"ALAPE MONROY PAULA VANESSA","FECHA":"2026-08-21","RADICACION":261004849,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":12500000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"100121908312500000","FECHA DESEMBOLSO":"2026-08-28"},{"CODIGO":177,"MES":8,"CEDULA":51717273,"NOMBRE":"GUTIERREZ HERRERA HERMENCIA","FECHA":"2026-08-20","RADICACION":261004830,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":25500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5171727325500000","FECHA DESEMBOLSO":"2026-08-26"},{"CODIGO":176,"MES":8,"CEDULA":39583306,"NOMBRE":"TRIANA SERRANO DIANA MARCELA","FECHA":"2026-08-20","RADICACION":261004821,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":45500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"INTEGRACION SOCIAL ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"3958330645500000","FECHA DESEMBOLSO":"2026-08-24"},{"CODIGO":175,"MES":8,"CEDULA":40033390,"NOMBRE":"BARRERA RODRIGUEZ CLAUDIA LUCIA","FECHA":"2026-08-19","RADICACION":261004810,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":73115000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"INSTITUTO DISTRITAL DE TURISMO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"4003339073115000","FECHA DESEMBOLSO":"2026-08-25"},{"CODIGO":174,"MES":8,"CEDULA":79290883,"NOMBRE":"BELTRAN RODRIGUEZ JAIRO WILLIAM","FECHA":"2026-08-19","RADICACION":261004809,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":30500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"7929088330500000","FECHA DESEMBOLSO":"2026-08-21"},{"CODIGO":173,"MES":8,"CEDULA":35412952,"NOMBRE":"LOPEZ GONZALEZ MARTHA 01NETHE","FECHA":"2026-08-19","RADICACION":261004806,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":15500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"3541295215500000","FECHA DESEMBOLSO":"2026-08-26"},{"CODIGO":193,"MES":8,"CEDULA":80812152,"NOMBRE":"EDGAR LEONARDO PEREZ RODRIGUEZ","FECHA":"2026-08-18","RADICACION":261004789,"TIPO CREDITO":"CREDIFACIL ","ESTADO":"DESEMBOLSADO","VALOR":6035000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"808121526035000","FECHA DESEMBOLSO":"2026-08-25"},{"CODIGO":172,"MES":8,"CEDULA":80740298,"NOMBRE":"GARCIA BERNAL ANDRES DAVID ","FECHA":"2026-08-18","RADICACION":261004786,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":5000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"807402985000000","FECHA DESEMBOLSO":"2026-08-20"},{"CODIGO":171,"MES":8,"CEDULA":52345607,"NOMBRE":"PARRA GOMEZ ADRIANA MARIA","FECHA":"2026-08-18","RADICACION":261004780,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":103560000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"IPES","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"SOLICITAR PAZ Y SALVO","LLAVE":"52345607103560000","FECHA DESEMBOLSO":"2026-08-25"},{"CODIGO":170,"MES":8,"CEDULA":1031141954,"NOMBRE":"BAUTISTA BERMUDEZ BRANDON LY","FECHA":"2026-08-18","RADICACION":261004776,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":22000000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"CONTRALORÍA ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"103114195422000000","FECHA DESEMBOLSO":"2026-08-21"},{"CODIGO":169,"MES":8,"CEDULA":39651509,"NOMBRE":"TORRES CACERES EDITH EUGENIA","FECHA":"2026-08-15","RADICACION":261004749,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":20000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"FER","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"3965150920000000","FECHA DESEMBOLSO":"2026-08-26"},{"CODIGO":168,"MES":8,"CEDULA":1032360733,"NOMBRE":"RODRIGUEZ NOVA BLEIDY ALEJANDRA","FECHA":"2026-08-15","RADICACION":261004748,"TIPO CREDITO":"PREF VIVIENDA","ESTADO":"LISTO PARA DESEMBOLSO","VALOR":123500000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"PENDIENTE REALIZAR PAGO DE TOTALIDAD OBLIGACION 241003489 PARA HACER ENVIO DE LIBRANZA CON NOVEDAD, SUJETO A RTA DE LIBRANZA","ADICIONAL":"-","LLAVE":"1032360733123500000","FECHA DESEMBOLSO":"-"},{"CODIGO":167,"MES":8,"CEDULA":39720144,"NOMBRE":"PEREZ NOVOA NEILA ELM","FECHA":"2026-08-15","RADICACION":261004746,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":1000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SUB RED NORTE ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"397201441000000","FECHA DESEMBOLSO":"2026-08-19"},{"CODIGO":166,"MES":8,"CEDULA":79730672,"NOMBRE":"COLORADO ALDANA LUIS ALBERTO","FECHA":"2026-08-15","RADICACION":261004743,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":4000000,"TIPO DE CONTRATO":"Libre Nombramiento y remocion","ENTIDAD":"REGION METROPOLITANA ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"797306724000000","FECHA DESEMBOLSO":"2026-08-19"},{"CODIGO":165,"MES":8,"CEDULA":22529936,"NOMBRE":"CAMARGO MEZA DIANA DEL CARMEN","FECHA":"2026-08-15","RADICACION":261004742,"TIPO CREDITO":"PATRIMONIAL 1-1","ESTADO":"DESEMBOLSADO","VALOR":7000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"225299367000000","FECHA DESEMBOLSO":"2026-08-19"},{"CODIGO":164,"MES":8,"CEDULA":1022964197,"NOMBRE":"GONZALEZ GOMEZ ANGELICA MARLENY","FECHA":"2026-08-14","RADICACION":261004719,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":3000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DISTRITAL DESARROLLO ECONÓMICO ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10229641973000000","FECHA DESEMBOLSO":"2026-08-19"},{"CODIGO":163,"MES":8,"CEDULA":51923933,"NOMBRE":"OLIVEROS ESPITIA GLORIA ESPERANZA","FECHA":"2026-08-14","RADICACION":261004714,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"ANULADO","VALOR":20500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"ALCALDÍA MAYOR GENERAL ","ASESOR":"LEONELA BUENO","OBSERVACION":"NO PRESENTA CAPACIDAD DE DESCUENTO.","ADICIONAL":"-","LLAVE":"5192393320500000","FECHA DESEMBOLSO":"-"},{"CODIGO":162,"MES":8,"CEDULA":1033802757,"NOMBRE":"CHALA PABON KEVIN ANDERSON","FECHA":"2026-08-14","RADICACION":261004710,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":49000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DE SALUD ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"103380275749000000","FECHA DESEMBOLSO":"2026-08-26"},{"CODIGO":161,"MES":8,"CEDULA":1014262280,"NOMBRE":"SANCHEZ GUEVARA DANIELA MELISSA","FECHA":"2026-08-14","RADICACION":261004707,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":7500000,"TIPO DE CONTRATO":"Termino Fijo","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10142622807500000","FECHA DESEMBOLSO":"2026-08-24"},{"CODIGO":160,"MES":8,"CEDULA":52713406,"NOMBRE":"BETANCOURT JOYA INES CAROLINA","FECHA":"2026-08-13","RADICACION":261004696,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":53484000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5271340653484000","FECHA DESEMBOLSO":"2026-08-20"},{"CODIGO":159,"MES":8,"CEDULA":52853826,"NOMBRE":"MARQUEZ VELASQUEZ JULIANA","FECHA":"2026-08-13","RADICACION":261004691,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":40000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5285382640000000","FECHA DESEMBOLSO":"2026-08-18"},{"CODIGO":158,"MES":8,"CEDULA":85373543,"NOMBRE":"ARIAS BOLAÑO MANUEL JULIAN","FECHA":"2026-08-12","RADICACION":261004662,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":8000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"METRO DE BOGOTA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"853735438000000","FECHA DESEMBOLSO":"2026-08-14"},{"CODIGO":157,"MES":8,"CEDULA":49719113,"NOMBRE":"ARZUAGA CEDEÑO MARIA FERNANDA","FECHA":"2026-08-12","RADICACION":261004659,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":14000000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"CONTRALORÍA ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"4971911314000000","FECHA DESEMBOLSO":"2026-08-14"},{"CODIGO":156,"MES":8,"CEDULA":52886757,"NOMBRE":"LEON POLO LIBIA ESTER","FECHA":"2026-08-12","RADICACION":261004657,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":7000000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"IPES","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"528867577000000","FECHA DESEMBOLSO":"2026-08-21"},{"CODIGO":155,"MES":8,"CEDULA":52743585,"NOMBRE":"GUEVARA RUIZ OLGA LUCIA","FECHA":"2026-08-12","RADICACION":261004653,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":7500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"FER","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"527435857500000","FECHA DESEMBOLSO":"2026-08-26"},{"CODIGO":154,"MES":8,"CEDULA":52286036,"NOMBRE":"GONZALEZ QUINTERO MARIA CIELO","FECHA":"2026-08-12","RADICACION":261004650,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":60000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"INTEGRACION SOCIAL ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5228603660000000","FECHA DESEMBOLSO":"2026-08-21"},{"CODIGO":153,"MES":8,"CEDULA":39528101,"NOMBRE":"BARBOSA GARCIA LILIANA 01ETTE","FECHA":"2026-08-12","RADICACION":261004644,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":3010000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"IDIPRON ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"395281013010000","FECHA DESEMBOLSO":"2026-08-20"},{"CODIGO":152,"MES":8,"CEDULA":40032250,"NOMBRE":"ALARCON RODRIGUEZ CLAUDIA YANETH","FECHA":"2026-08-11","RADICACION":261004626,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":23700000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DISTRITAL DE MOVILIDAD ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"4003225023700000","FECHA DESEMBOLSO":"2026-08-21"},{"CODIGO":151,"MES":8,"CEDULA":52049472,"NOMBRE":"ZAMORA FLOREZ MARIA CONSUELO","FECHA":"2026-08-11","RADICACION":261004618,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":1510000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"IPES","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"520494721510000","FECHA DESEMBOLSO":"2026-08-13"},{"CODIGO":150,"MES":8,"CEDULA":29670886,"NOMBRE":"PARRA ROMERO LORENA","FECHA":"2026-08-11","RADICACION":261004617,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":12000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"METRO DE BOGOTA","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"2967088612000000","FECHA DESEMBOLSO":"2026-08-13"},{"CODIGO":149,"MES":8,"CEDULA":1136889959,"NOMBRE":"ROMERO AVELLANEDA DANNA VALENTINA","FECHA":"2026-08-11","RADICACION":261004614,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":1800000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"11368899591800000","FECHA DESEMBOLSO":"2026-08-20"},{"CODIGO":148,"MES":8,"CEDULA":1032464736,"NOMBRE":"VALDES TORRES DANIELA","FECHA":"2026-08-11","RADICACION":261004611,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":49000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"PERSONERÍA DE BOGOTÁ ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"103246473649000000","FECHA DESEMBOLSO":"2026-08-14"},{"CODIGO":147,"MES":8,"CEDULA":52635059,"NOMBRE":"BUSTOS VILLAMIL SONIA EDITH ","FECHA":"2026-08-11","RADICACION":261004610,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":21530000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5263505921530000","FECHA DESEMBOLSO":"-"},{"CODIGO":135,"MES":8,"CEDULA":91277386,"NOMBRE":"GARCIA ARNULFO","FECHA":"2026-08-11","RADICACION":261004530,"TIPO CREDITO":"PATRIMONIAL","ESTADO":"DESEMBOLSADO","VALOR":4000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"912773864000000","FECHA DESEMBOLSO":"2026-08-13"},{"CODIGO":146,"MES":8,"CEDULA":1032368392,"NOMBRE":"PULIDO PINZON EDITH JOHANNA","FECHA":"2026-08-10","RADICACION":261004603,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":70000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"103236839270000000","FECHA DESEMBOLSO":"2026-08-13"},{"CODIGO":145,"MES":8,"CEDULA":1032447560,"NOMBRE":"RODRIGUEZ VELASQUEZ DANIEL FERNANDO","FECHA":"2026-08-10","RADICACION":261004598,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":89000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"103244756089000000","FECHA DESEMBOLSO":"2026-08-14"},{"CODIGO":144,"MES":8,"CEDULA":1018441523,"NOMBRE":"VEGA PULIDO ESTHER FANNY CAMILA","FECHA":"2026-08-10","RADICACION":261004596,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":2400000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DISTRITAL DE MOVILIDAD ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10184415232400000","FECHA DESEMBOLSO":"2026-08-13"},{"CODIGO":143,"MES":8,"CEDULA":1000364629,"NOMBRE":"RESTREPO IBAÑEZ ANA MARIA","FECHA":"2026-08-10","RADICACION":261004591,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":11600000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"100036462911600000","FECHA DESEMBOLSO":"2026-08-25"},{"CODIGO":142,"MES":8,"CEDULA":51728915,"NOMBRE":"CONTRERAS URREGO CARLA","FECHA":"2026-08-10","RADICACION":261004588,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":4250000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DISTRITAL DE AMBIENTE ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"517289154250000","FECHA DESEMBOLSO":"2026-08-18"},{"CODIGO":139,"MES":8,"CEDULA":51550194,"NOMBRE":"IBANEZ CHAPARRO ANA BERTHA","FECHA":"2026-08-10","RADICACION":261004524,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":4000000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"515501944000000","FECHA DESEMBOLSO":"2026-08-12"},{"CODIGO":141,"MES":8,"CEDULA":1033802757,"NOMBRE":"CHALA PABON KEVIN ANDERSON","FECHA":"2026-08-06","RADICACION":261004537,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"ANULADO","VALOR":95000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DE SALUD ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"ASOCIADO NO PRESENTA CAPACIDAD DE PAGO","ADICIONAL":"-","LLAVE":"103380275795000000","FECHA DESEMBOLSO":"-"},{"CODIGO":140,"MES":8,"CEDULA":1019005513,"NOMBRE":"DIMAS HOYOS DEISON LUIS","FECHA":"2026-08-06","RADICACION":261004528,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":11000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"DPTO ADMTIVO DE PLANEACIÓN DISTRITAL ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"101900551311000000","FECHA DESEMBOLSO":"2026-08-14"},{"CODIGO":138,"MES":8,"CEDULA":73157378,"NOMBRE":"CORREA PADILLA WILGEN VICENTE","FECHA":"2026-08-06","RADICACION":261004521,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":20000000,"TIPO DE CONTRATO":"Libre Nombramiento y remocion","ENTIDAD":"SECRETARÍA DE HACIENDA DISTRITAL ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"7315737820000000","FECHA DESEMBOLSO":"2026-08-20"},{"CODIGO":137,"MES":8,"CEDULA":20445158,"NOMBRE":"GUZMAN CASTIBLANCO SANDRA PATRICIA","FECHA":"2026-08-05","RADICACION":261004512,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":39500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"2044515839500000","FECHA DESEMBOLSO":"2026-08-10"},{"CODIGO":136,"MES":8,"CEDULA":92531101,"NOMBRE":"DAZA ACOSTA VLADIMIR LENIN","FECHA":"2026-08-05","RADICACION":261004514,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":20000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DISTRITAL DESARROLLO ECONÓMICO ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"9253110120000000","FECHA DESEMBOLSO":"2026-08-10"},{"CODIGO":134,"MES":8,"CEDULA":52425406,"NOMBRE":"MOJICA REVELO LILIANA","FECHA":"2026-08-04","RADICACION":261004484,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":20500000,"TIPO DE CONTRATO":"Familiar","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5242540620500000","FECHA DESEMBOLSO":"2026-08-13"},{"CODIGO":133,"MES":8,"CEDULA":1022393522,"NOMBRE":"DAZA ROA CRISTIAN DAVID","FECHA":"2026-08-04","RADICACION":261004472,"TIPO CREDITO":"ORDINARIO ","ESTADO":"EN RECEPCION","VALOR":10500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE EDUCACIÓN DISTRITAL – SED ","ASESOR":"LEONELA BUENO","OBSERVACION":"PENDIENTE LIBRANZA ","ADICIONAL":"-","LLAVE":"102239352210500000","FECHA DESEMBOLSO":"-"},{"CODIGO":132,"MES":8,"CEDULA":79706091,"NOMBRE":"ORTIZ PORTUGAL LUIS FERNANDO","FECHA":"2026-08-04","RADICACION":261004471,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":24000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DISTRITAL DESARROLLO ECONÓMICO ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"7970609124000000","FECHA DESEMBOLSO":"2026-08-10"},{"CODIGO":131,"MES":8,"CEDULA":41647687,"NOMBRE":"BERNAL PERICO ANA SOFIA","FECHA":"2026-08-04","RADICACION":261004457,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"ANULADO","VALOR":64200000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"COLPENSIONES","ASESOR":"LEONELA BUENO","OBSERVACION":"\t\nNO CUENTA CON CAPACIDAD CON CUOTA PACTADA","ADICIONAL":"-","LLAVE":"4164768764200000","FECHA DESEMBOLSO":"-"},{"CODIGO":130,"MES":8,"CEDULA":1047477665,"NOMBRE":"REVOLLO BALSEIRO JULIANA","FECHA":"2026-08-03","RADICACION":261004453,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":36100000,"TIPO DE CONTRATO":"Libre Nombramiento y remocion","ENTIDAD":"CONTRALORÍA ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"104747766536100000","FECHA DESEMBOLSO":"2026-08-04"},{"CODIGO":129,"MES":8,"CEDULA":65812258,"NOMBRE":"PEREZ TORRES ANGELICA MARIA","FECHA":"2026-08-03","RADICACION":261004451,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":20000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SUB RED SUR ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"6581225820000000","FECHA DESEMBOLSO":"2026-08-06"},{"CODIGO":128,"MES":7,"CEDULA":41583662,"NOMBRE":"FLOREZ TAUTIVA MARIA MAGDALENA","FECHA":"2026-07-30","RADICACION":261004402,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":6000000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"COLPENSIONES","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"415836626000000","FECHA DESEMBOLSO":"2026-08-03"},{"CODIGO":127,"MES":7,"CEDULA":52316459,"NOMBRE":"CASTRO ARCHILA DIANA PATRICIA","FECHA":"2026-07-30","RADICACION":261004387,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":49000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE HACIENDA DISTRITAL ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5231645949000000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":126,"MES":7,"CEDULA":1033698089,"NOMBRE":"MARTINEZ SALGADO DIANA MARCELA","FECHA":"2026-07-30","RADICACION":261004382,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":7500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DE SEGURIDAD, CONVIVENCIA Y JUSTICIA ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10336980897500000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":125,"MES":7,"CEDULA":1023948755,"NOMBRE":"GARCIA MOLINA LAURA VANESSA","FECHA":"2026-07-30","RADICACION":261004383,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":10018000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"IDIPRON","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"102394875510018000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":124,"MES":7,"CEDULA":52645916,"NOMBRE":"BELLON MORALES SANDRA MILENA","FECHA":"2026-07-30","RADICACION":261004384,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":3800000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SEC DISTR DESARROLLO ECONOMICO","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"526459163800000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":123,"MES":7,"CEDULA":41647687,"NOMBRE":"BERNAL PERICO ANA SOFIA","FECHA":"2026-07-30","RADICACION":261004379,"TIPO CREDITO":"ORDINARIO ","ESTADO":"ANULADO","VALOR":67200000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"COLPENSIONES","ASESOR":"LEONELA BUENO","OBSERVACION":null,"ADICIONAL":"-","LLAVE":"4164768767200000","FECHA DESEMBOLSO":"-"},{"CODIGO":122,"MES":7,"CEDULA":1014267519,"NOMBRE":"RUIZ GOMEZ ANGEL DAVID","FECHA":"2026-07-30","RADICACION":261004386,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":15000000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"101426751915000000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":121,"MES":7,"CEDULA":23846076,"NOMBRE":"DIAZ HUERTAS LUZ ANGELA","FECHA":"2026-07-30","RADICACION":261004369,"TIPO CREDITO":"EDUCATIVO ","ESTADO":"DESEMBOLSADO","VALOR":19000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"PERSONERIA DE BOGOTA","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"2384607619000000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":120,"MES":7,"CEDULA":31386668,"NOMBRE":"GONGORA DE LA CRUZ JUANA MARIA","FECHA":"2026-07-30","RADICACION":261004385,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":35000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"SUB RED NORTE ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"3138666835000000","FECHA DESEMBOLSO":"2026-08-06"},{"CODIGO":119,"MES":7,"CEDULA":52950534,"NOMBRE":"MORENO ARIAS NIDIA ESPERANZA","FECHA":"2026-07-29","RADICACION":261004378,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":20500000,"TIPO DE CONTRATO":"Libre Nombramiento y remocion","ENTIDAD":"CONCEJO DE BOGOTÁ ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5295053420500000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":118,"MES":7,"CEDULA":1023953254,"NOMBRE":"NUÑEZ RODRIGUEZ JESUS DAVID","FECHA":"2026-07-29","RADICACION":261004371,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":25500000,"TIPO DE CONTRATO":"Independiente","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"102395325425500000","FECHA DESEMBOLSO":"2026-08-04"},{"CODIGO":117,"MES":7,"CEDULA":52974351,"NOMBRE":"GIL PINZON JAZMIN EDITH","FECHA":"2026-07-29","RADICACION":261004375,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":1500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"PROTECCION ANIMAL ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"529743511500000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":116,"MES":7,"CEDULA":1032425833,"NOMBRE":"OCAMPO BEDOYA DIONNY","FECHA":"2026-07-29","RADICACION":261004374,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":30500000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"CONTRALORÍA ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"103242583330500000","FECHA DESEMBOLSO":"2026-08-04"},{"CODIGO":115,"MES":7,"CEDULA":52196144,"NOMBRE":"FLOREZ TORO SANDRA MARCELA","FECHA":"2026-07-29","RADICACION":261004373,"TIPO CREDITO":"PATRIMONIAL 1-1","ESTADO":"DESEMBOLSADO","VALOR":7014000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"CATASTRO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"521961447014000","FECHA DESEMBOLSO":"2026-08-03"},{"CODIGO":113,"MES":7,"CEDULA":1129499313,"NOMBRE":"TORRES VELASQUEZ JOSE DANIEL","FECHA":"2026-07-29","RADICACION":261004364,"TIPO CREDITO":"EDUCATIVO ","ESTADO":"DESEMBOLSADO","VALOR":10106000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"112949931310106000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":112,"MES":7,"CEDULA":39695836,"NOMBRE":"HERNANDEZ MORA DIANA","FECHA":"2026-07-29","RADICACION":261004363,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":48000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SUB RED CENTRO ORIENTE ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"3969583648000000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":111,"MES":7,"CEDULA":80355602,"NOMBRE":"LARROTA TRUJILLO PABLO ENRIQUE ","FECHA":"2026-07-29","RADICACION":261004361,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":2930000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"803556022930000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":110,"MES":7,"CEDULA":1075298797,"NOMBRE":"NIETO GUZMAN JOSE DANIEL ","FECHA":"2026-07-29","RADICACION":261004359,"TIPO CREDITO":"EDUCATIVO ","ESTADO":"DESEMBOLSADO","VALOR":4700000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"CONTRALORÍA ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10752987974700000","FECHA DESEMBOLSO":"2026-08-05"},{"CODIGO":109,"MES":7,"CEDULA":1024461955,"NOMBRE":"RODRIGUEZ REYES SONIA CAROLINA","FECHA":"2026-07-29","RADICACION":261004356,"TIPO CREDITO":"EDUCATIVO ","ESTADO":"DESEMBOLSADO","VALOR":4500000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"CANAL CAPITAL ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10244619554500000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":108,"MES":7,"CEDULA":52118985,"NOMBRE":"BERNAL ALVAREZ MARTHA INES","FECHA":"2026-07-29","RADICACION":261004355,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":2515000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"521189852515000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":107,"MES":7,"CEDULA":52118985,"NOMBRE":"BERNAL ALVAREZ MARTHA INES","FECHA":"2026-07-29","RADICACION":261004354,"TIPO CREDITO":"EDUCATIVO ","ESTADO":"DESEMBOLSADO","VALOR":5050000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"521189855050000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":106,"MES":7,"CEDULA":80073084,"NOMBRE":"RUIZ LOPEZ JAIME ADRIAN ","FECHA":"2026-07-29","RADICACION":261004353,"TIPO CREDITO":"PATRIMONIAL 1-2","ESTADO":"DESEMBOLSADO","VALOR":10400000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DISTRITAL DE MOVILIDAD ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"8007308410400000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":105,"MES":7,"CEDULA":66782458,"NOMBRE":"VARGAS SERRANO ANDREA ISABEL","FECHA":"2026-07-29","RADICACION":261004349,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":3160000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"JARDÍN BOTÁNICO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"667824583160000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":99,"MES":7,"CEDULA":52227319,"NOMBRE":"ANGULO VILLAMIL ANA LUCIA","FECHA":"2026-07-29","RADICACION":261004380,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":40000000,"TIPO DE CONTRATO":"Libre Nombramiento y remocion","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5222731940000000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":104,"MES":7,"CEDULA":52818080,"NOMBRE":"PABON RIVEROS CLAUDIA MARCELA","FECHA":"2026-07-28","RADICACION":261004344,"TIPO CREDITO":"EDUCATIVO ","ESTADO":"DESEMBOLSADO","VALOR":8350000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"SECRETARIA DE EDUCACIÓN Y DOCENTES ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"528180808350000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":103,"MES":7,"CEDULA":1053859861,"NOMBRE":"ARBOLEDA MUÑOZ YULY ANDREA","FECHA":"2026-07-28","RADICACION":261004342,"TIPO CREDITO":"CREDIFACIL ","ESTADO":"DESEMBOLSADO","VALOR":3830000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10538598613830000","FECHA DESEMBOLSO":"2026-07-30"},{"CODIGO":102,"MES":7,"CEDULA":52169206,"NOMBRE":"MONTOYA REINA ANA ELVIA","FECHA":"2026-07-28","RADICACION":261004340,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":22000000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"CONTRALORÍA ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5216920622000000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":101,"MES":7,"CEDULA":51716052,"NOMBRE":"AGUILAR HOYOS ADRIANA HELENA","FECHA":"2026-07-28","RADICACION":261004337,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":28700000,"TIPO DE CONTRATO":"Familiar","ENTIDAD":"VENTANILLA","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5171605228700000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":100,"MES":7,"CEDULA":17634977,"NOMBRE":"ARTUNDUAGA OCHOA JAIRO","FECHA":"2026-07-28","RADICACION":261004335,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":15000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"CONTRALORÍA ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"1763497715000000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":98,"MES":7,"CEDULA":13352669,"NOMBRE":"LANDAZABAL PABON RAFAEL","FECHA":"2026-07-28","RADICACION":261004325,"TIPO CREDITO":"PREF VEHICULO ","ESTADO":"DESEMBOLSADO","VALOR":90000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"1335266990000000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":97,"MES":7,"CEDULA":79955134,"NOMBRE":"RUBIO NARANJO JOHN WALTER","FECHA":"2026-07-28","RADICACION":261004324,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":45000000,"TIPO DE CONTRATO":"Familiar","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"7995513445000000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":96,"MES":7,"CEDULA":52717989,"NOMBRE":"LEGUIZAMON DUARTE LORELYS ","FECHA":"2026-07-28","RADICACION":261004323,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":10000000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"SECRETARIA DISTRITAL DE MOVILIDAD ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5271798910000000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":95,"MES":7,"CEDULA":53120689,"NOMBRE":"OCHOA PARRA DIANA MILENA","FECHA":"2026-07-27","RADICACION":261004317,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":35120000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5312068935120000","FECHA DESEMBOLSO":"2026-07-30"},{"CODIGO":93,"MES":7,"CEDULA":53051329,"NOMBRE":"LOPEZ DE LA ESPRIELLA LORENA ALEXANDRA","FECHA":"2026-07-27","RADICACION":261004165,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":10500000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"ALCALDÍA MAYOR GENERAL ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5305132910500000","FECHA DESEMBOLSO":"2026-08-25"},{"CODIGO":92,"MES":7,"CEDULA":51613999,"NOMBRE":"MUÑOZ MOJICA MARTHA CECILIA","FECHA":"2026-07-27","RADICACION":261004314,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":6000000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"516139996000000","FECHA DESEMBOLSO":"2026-07-30"},{"CODIGO":91,"MES":7,"CEDULA":80199404,"NOMBRE":"SANCHEZ MONTOYA EDGAR HERNAN","FECHA":"2026-07-27","RADICACION":261004306,"TIPO CREDITO":"PATRIMONIAL 1-2","ESTADO":"DESEMBOLSADO","VALOR":27860000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"8019940427860000","FECHA DESEMBOLSO":"2026-07-28"},{"CODIGO":90,"MES":7,"CEDULA":80250261,"NOMBRE":"RODRIGUEZ TORRES EDISSON ALFONSO","FECHA":"2026-07-27","RADICACION":261004301,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":31000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"8025026131000000","FECHA DESEMBOLSO":"2026-07-29"},{"CODIGO":89,"MES":7,"CEDULA":79616440,"NOMBRE":"SANTANA NIÑO OSCAR SAUL","FECHA":"2026-07-25","RADICACION":261004280,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":5815000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"796164405815000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":88,"MES":7,"CEDULA":79707638,"NOMBRE":"RIAÑO CORTES SANTIAGO","FECHA":"2026-07-25","RADICACION":261004277,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"ANULADO","VALOR":34400000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"PROCURADURIA ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"SUMINISTRAR CERTIFICADO LABORAL. FORMATO DE PROCURADURÍA SE ENCUENTRA SIN VIGENCIA. VALIDAR ÚLTIMA VERSIÓN DEL 2025, TENIENDO EN CUENTA HABITO DE PAGO SE DEBE ANEXAR GARANTÍA COMO RESPALDO DE CRÉDITO. (DICHO VALOR DEBE SER CONSIGNADO EN VENTANILLA CON RECURSOS PROPIOS POR MONTO SOLICITADO NO CUBRIRÍA DICHO COBRO EN DADO CASO DEL FDG). GENERAR LIBRANZA SIN FECHA DE DESCUENTO","ADICIONAL":"-","LLAVE":"7970763834400000","FECHA DESEMBOLSO":"-"},{"CODIGO":87,"MES":7,"CEDULA":80242982,"NOMBRE":"BUSTAMANTE ALVAREZ WEISNER ANDRES","FECHA":"2026-07-25","RADICACION":261004274,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":8110000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"802429828110000","FECHA DESEMBOLSO":"2026-07-30"},{"CODIGO":86,"MES":7,"CEDULA":41494223,"NOMBRE":"FETIVA DE DAZA LUZ EMILIA","FECHA":"2026-07-24","RADICACION":261004259,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":5000000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"PAGARE FISICO","LLAVE":"414942235000000","FECHA DESEMBOLSO":"2026-07-28"},{"CODIGO":85,"MES":7,"CEDULA":79491565,"NOMBRE":"CAÑON CALDAS OSCAR","FECHA":"2026-07-24","RADICACION":261004255,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":5600000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"IDIGER","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"794915655600000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":84,"MES":7,"CEDULA":1013652282,"NOMBRE":"CARRION BONIFACIO ANGELA CAROLINA","FECHA":"2026-07-24","RADICACION":261004247,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":25000000,"TIPO DE CONTRATO":"Familiar","ENTIDAD":"VENTANILLA","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"101365228225000000","FECHA DESEMBOLSO":"2026-07-28"},{"CODIGO":83,"MES":7,"CEDULA":1012356240,"NOMBRE":"BERMUDEZ LEON JUAN DAVID ","FECHA":"2026-07-24","RADICACION":261004244,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":30000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"101235624030000000","FECHA DESEMBOLSO":"-"},{"CODIGO":82,"MES":7,"CEDULA":79959905,"NOMBRE":"BECERRA CHAVES FRANCISCO JOSE","FECHA":"2026-07-24","RADICACION":261004243,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":2910000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"799599052910000","FECHA DESEMBOLSO":"2026-07-30"},{"CODIGO":81,"MES":7,"CEDULA":52395062,"NOMBRE":"ACUNA RAMIREZ LUZ DARY","FECHA":"2026-07-24","RADICACION":261004240,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":89000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5239506289000000","FECHA DESEMBOLSO":"2026-07-29"},{"CODIGO":80,"MES":7,"CEDULA":1019027314,"NOMBRE":"SARMIENTO GONZALEZ SONIA MIREYA","FECHA":"2026-07-23","RADICACION":261004225,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":50000000,"TIPO DE CONTRATO":"Familiar","ENTIDAD":"VENTANILLA","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"101902731450000000","FECHA DESEMBOLSO":"2026-07-28"},{"CODIGO":79,"MES":7,"CEDULA":51858931,"NOMBRE":"SANCHEZ BELLO TERESA","FECHA":"2026-07-23","RADICACION":261004223,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":24300000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"PAGARE FISICO","LLAVE":"5185893124300000","FECHA DESEMBOLSO":"2026-07-28"},{"CODIGO":78,"MES":7,"CEDULA":41353131,"NOMBRE":"RAMIREZ DE VELANDIA SATURIA","FECHA":"2026-07-23","RADICACION":261004210,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":23000000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"PAGARE FISICO","LLAVE":"4135313123000000","FECHA DESEMBOLSO":"2026-07-27"},{"CODIGO":77,"MES":7,"CEDULA":35200194,"NOMBRE":"LOPEZ MOLINA ANA ILSE","FECHA":"2026-07-23","RADICACION":261004209,"TIPO CREDITO":"CREDIFACIL ","ESTADO":"ANULADO","VALOR":6000000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"NO CUENTA CON CAPACIDAD DE PAGO PARA LA CUOTA PACTADA","ADICIONAL":"PAGARE FISICO","LLAVE":"352001946000000","FECHA DESEMBOLSO":"-"},{"CODIGO":66,"MES":7,"CEDULA":19207337,"NOMBRE":"CARDENAS MORENO JORGE ERNESTO","FECHA":"2026-07-23","RADICACION":261004221,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":22000000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"COLPENSIONES","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"PAGARE FISICO","LLAVE":"1920733722000000","FECHA DESEMBOLSO":"2026-07-24"},{"CODIGO":76,"MES":7,"CEDULA":51683707,"NOMBRE":"SALAZAR MARIN MARLENY","FECHA":"2026-07-22","RADICACION":261004193,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":6000000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"PAGARE FISICO","LLAVE":"516837076000000","FECHA DESEMBOLSO":"2026-07-24"},{"CODIGO":75,"MES":7,"CEDULA":52101734,"NOMBRE":"SANCHEZ ALVAREZ CLAUDIA LILIANA","FECHA":"2026-07-22","RADICACION":261004197,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":6000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SUB RED CENTRO ORIENTE ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"521017346000000","FECHA DESEMBOLSO":"2026-07-27"},{"CODIGO":74,"MES":7,"CEDULA":52101734,"NOMBRE":"SANCHEZ ALVAREZ CLAUDIA LILIANA","FECHA":"2026-07-22","RADICACION":261004196,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":36800000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SUB RED CENTRO ORIENTE ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"SOLICITAR PAZ Y SALVO","LLAVE":"5210173436800000","FECHA DESEMBOLSO":"2026-07-27"},{"CODIGO":73,"MES":7,"CEDULA":1015417918,"NOMBRE":"TORRES IBAÑEZ MIGUEL ANTONIO","FECHA":"2026-07-22","RADICACION":261004190,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"ANULADO","VALOR":4908679,"TIPO DE CONTRATO":"Familiar","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"SE ENTREGO HOY","ADICIONAL":"PAGARE FISICO","LLAVE":"10154179184908679","FECHA DESEMBOLSO":"-"},{"CODIGO":72,"MES":7,"CEDULA":1033806372,"NOMBRE":"AGUILAR PARDO JORDAN NICOLAS","FECHA":"2026-07-22","RADICACION":261004185,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"ANULADO","VALOR":44000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"VENTANILLA","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"ANULADO","ADICIONAL":"PAGARE FISICO","LLAVE":"103380637244000000","FECHA DESEMBOLSO":"-"},{"CODIGO":71,"MES":7,"CEDULA":16072352,"NOMBRE":"GAVIRIA POSADA JHOMER ALEIXER","FECHA":"2026-07-21","RADICACION":261004170,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":80000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE HACIENDA DISTRITAL ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"1607235280000000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":70,"MES":7,"CEDULA":39646545,"NOMBRE":"GUZMAN GARZON MARIA DEYANIRA","FECHA":"2026-07-21","RADICACION":261004159,"TIPO CREDITO":"EDUCATIVO ","ESTADO":"DESEMBOLSADO","VALOR":20000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"3964654520000000","FECHA DESEMBOLSO":"2026-07-23"},{"CODIGO":69,"MES":7,"CEDULA":1030561373,"NOMBRE":"ZAMBRANO CUEVAS ADRIANA PAOLA","FECHA":"2026-07-21","RADICACION":261004156,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":7400000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10305613737400000","FECHA DESEMBOLSO":"00:00:00"},{"CODIGO":68,"MES":7,"CEDULA":79898013,"NOMBRE":"HERRERA BARRERA JUAN PABLO","FECHA":"2026-07-21","RADICACION":261004153,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":10093000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"JARDÍN BOTÁNICO ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"7989801310093000","FECHA DESEMBOLSO":"2026-07-25"},{"CODIGO":67,"MES":7,"CEDULA":1012374466,"NOMBRE":"RIOS PINEDA LIZETH GERALDINE","FECHA":"2026-07-21","RADICACION":261004152,"TIPO CREDITO":"PREF VEHICULO ","ESTADO":"DESEMBOLSADO","VALOR":70400000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DE SEGURIDAD, CONVIVENCIA Y JUSTICIA ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"101237446670400000","FECHA DESEMBOLSO":"2026-07-28"},{"CODIGO":65,"MES":7,"CEDULA":20699745,"NOMBRE":"REAL REAL DORIS AMELIA","FECHA":"2026-07-18","RADICACION":261004120,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":8500000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"SUB RED OCCIDENTE ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"206997458500000","FECHA DESEMBOLSO":"2026-07-24"},{"CODIGO":64,"MES":7,"CEDULA":52216639,"NOMBRE":"RODRIGUEZ MAHECHA OMAIRA","FECHA":"2026-07-18","RADICACION":261004115,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":10000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5221663910000000","FECHA DESEMBOLSO":"2026-07-23"},{"CODIGO":63,"MES":7,"CEDULA":1121875709,"NOMBRE":"ALVAREZ SARAY RONALD ALEXIS","FECHA":"2026-07-18","RADICACION":261004112,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"ANULADO","VALOR":39500000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":null,"ADICIONAL":"-","LLAVE":"112187570939500000","FECHA DESEMBOLSO":"-"},{"CODIGO":62,"MES":7,"CEDULA":52862566,"NOMBRE":"ROJAS NEVA NIDIA ESPERANZA","FECHA":"2026-07-18","RADICACION":261004111,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":25217000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5286256625217000","FECHA DESEMBOLSO":"2026-07-24"},{"CODIGO":61,"MES":7,"CEDULA":1014226063,"NOMBRE":"VELASQUEZ MOYA JOSE SAID","FECHA":"2026-07-18","RADICACION":261004107,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":50000000,"TIPO DE CONTRATO":"Familiar","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"101422606350000000","FECHA DESEMBOLSO":"2026-07-21"},{"CODIGO":60,"MES":7,"CEDULA":1018414378,"NOMBRE":"SILVA CAMACHO JENNY MARCELA","FECHA":"2026-07-17","RADICACION":261004089,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"ANULADO","VALOR":14830781,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"COOPEBIS ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"CRÉDITO NEGADO DE ASOCIADA TRABAJADORA DE COOPEBIS QUIEN YA HABÍA TRAMITADO UNA SOLICITUD SIMILAR PARA RECOGER CARTERAS QUE VUELVE A PRESENTAR INCLUSO CON SALDOS MÁS ALTOS","ADICIONAL":"-","LLAVE":"101841437814830781","FECHA DESEMBOLSO":"-"},{"CODIGO":59,"MES":7,"CEDULA":1030594728,"NOMBRE":"FORERO ESPEJO KAREN JOHANA","FECHA":"2026-07-17","RADICACION":261004083,"TIPO CREDITO":"PATRIMONIAL 1-2","ESTADO":"DESEMBOLSADO","VALOR":4500000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10305947284500000","FECHA DESEMBOLSO":"2026-07-23"},{"CODIGO":58,"MES":7,"CEDULA":40033390,"NOMBRE":"BARRERA RODRIGUEZ CLAUDIA LUCIA","FECHA":"2026-07-17","RADICACION":261004069,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"ANULADO","VALOR":75500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"INSTITUTO DISTRITAL DE TURISMO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"ANULADO","ADICIONAL":"-","LLAVE":"4003339075500000","FECHA DESEMBOLSO":"-"},{"CODIGO":57,"MES":7,"CEDULA":1013671337,"NOMBRE":"RODRIGUEZ CASALLAS MARIA DANIELA","FECHA":"2026-07-17","RADICACION":261004079,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":16000000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"VENTANILLA","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"101367133716000000","FECHA DESEMBOLSO":"2026-07-24"},{"CODIGO":56,"MES":7,"CEDULA":79508170,"NOMBRE":"GUTIERREZ LEON JOSE LUIS ","FECHA":"2026-07-17","RADICACION":261004067,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":84000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DE SALUD ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"7950817084000000","FECHA DESEMBOLSO":"2026-07-27"},{"CODIGO":55,"MES":7,"CEDULA":39701141,"NOMBRE":"BAUTISTA LOPEZ FABIOLA","FECHA":"2026-07-17","RADICACION":261004065,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"ANULADO","VALOR":35000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SUB RED SUR ","ASESOR":"LEONELA BUENO","OBSERVACION":"ANULADO","ADICIONAL":"-","LLAVE":"3970114135000000","FECHA DESEMBOLSO":"-"},{"CODIGO":54,"MES":7,"CEDULA":51667362,"NOMBRE":"FLOREZ GONZALEZ MARTHA LUCIA","FECHA":"2026-07-16","RADICACION":261004052,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":30000000,"TIPO DE CONTRATO":"Independiente","ENTIDAD":"VENTANILLA","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"PAGARE FISICO","LLAVE":"5166736230000000","FECHA DESEMBOLSO":"2026-07-23"},{"CODIGO":53,"MES":7,"CEDULA":80912171,"NOMBRE":"HUERTAS VARGAS WILMER ANTONIO ","FECHA":"2026-07-16","RADICACION":261004049,"TIPO CREDITO":"PATRIMONIAL 1-1","ESTADO":"DESEMBOLSADO","VALOR":4000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"INTEGRACION SOCIAL ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"809121714000000","FECHA DESEMBOLSO":"2026-07-24"},{"CODIGO":52,"MES":7,"CEDULA":1015433977,"NOMBRE":"PULGARIN CORONADO ANDREA","FECHA":"2026-07-16","RADICACION":261004039,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":5020000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10154339775020000","FECHA DESEMBOLSO":"2026-07-21"},{"CODIGO":51,"MES":7,"CEDULA":79968145,"NOMBRE":"BARRERA CABRALES JAVIER ANTONIO","FECHA":"2026-07-16","RADICACION":261004037,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":3800000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"799681453800000","FECHA DESEMBOLSO":"2026-07-27"},{"CODIGO":50,"MES":7,"CEDULA":11451293,"NOMBRE":"RODRIGUEZ SARMIENTO EDWIN ALBERTO","FECHA":"2026-07-16","RADICACION":261004033,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":7100000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"ORQUESTA FILARMONICA DE BOGOTÁ ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"114512937100000","FECHA DESEMBOLSO":"2026-07-17"},{"CODIGO":49,"MES":7,"CEDULA":79569203,"NOMBRE":"VIVAS GONZALEZ BRANDON NAPOLEON","FECHA":"2026-07-16","RADICACION":261004043,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":2910000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"795692032910000","FECHA DESEMBOLSO":"2026-07-24"},{"CODIGO":46,"MES":7,"CEDULA":41748068,"NOMBRE":"ACEVEDO ACEVEDO MARIA BERTHA","FECHA":"2026-07-15","RADICACION":261004017,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"ANULADO","VALOR":15000000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"SE ENTREGO INGRESOS ADICIONALES","ADICIONAL":"-","LLAVE":"4174806815000000","FECHA DESEMBOLSO":"-"},{"CODIGO":45,"MES":7,"CEDULA":52972766,"NOMBRE":"PADILLA OSORIO PAOLA ROCIO ","FECHA":"2026-07-15","RADICACION":261004008,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":122000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DE GOBIERNO DISTRITAL ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"SOLICITAR PAZ Y SALVO","LLAVE":"52972766122000000","FECHA DESEMBOLSO":"2026-07-24"},{"CODIGO":44,"MES":7,"CEDULA":32665230,"NOMBRE":"OSORIO RUIZ NELLY ROSA","FECHA":"2026-07-15","RADICACION":261003952,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":15000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"3266523015000000","FECHA DESEMBOLSO":"2026-07-29"},{"CODIGO":43,"MES":7,"CEDULA":52057352,"NOMBRE":"HERNANDEZ ARIZA MARTHA EDITH","FECHA":"2026-07-15","RADICACION":261003994,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":7200000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"SECRETARIA DE CULTURA RECREACIÓN Y DEPORTE ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"520573527200000","FECHA DESEMBOLSO":"2026-07-21"},{"CODIGO":42,"MES":7,"CEDULA":52367832,"NOMBRE":"HURTADO GOMEZ SANDRA CONCEPCION","FECHA":"2026-07-15","RADICACION":261003989,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":20200000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"INTEGRACION SOCIAL ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5236783220200000","FECHA DESEMBOLSO":"2026-07-17"},{"CODIGO":48,"MES":7,"CEDULA":52908553,"NOMBRE":"CORREA ALARCON GINA PAOLA","FECHA":"2026-07-14","RADICACION":261003972,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":35000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5290855335000000","FECHA DESEMBOLSO":"2026-07-17"},{"CODIGO":47,"MES":7,"CEDULA":1095922057,"NOMBRE":"MEDINA ARAQUE JUDITH LORENA","FECHA":"2026-07-14","RADICACION":261003968,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":5510000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DISTRITAL DE AMBIENTE ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10959220575510000","FECHA DESEMBOLSO":"2026-07-16"},{"CODIGO":41,"MES":7,"CEDULA":19097273,"NOMBRE":"ALFONSO LOPEZ CONTRERAS","FECHA":"2026-07-14","RADICACION":261003966,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":1300000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"190972731300000","FECHA DESEMBOLSO":"2026-07-23"},{"CODIGO":40,"MES":7,"CEDULA":1001188741,"NOMBRE":"CHOLS RODRÍGUEZ DANIEL FELIPE","FECHA":"2026-07-14","RADICACION":261003955,"TIPO CREDITO":"EDUCATIVO ","ESTADO":"DESEMBOLSADO","VALOR":22950000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"100118874122950000","FECHA DESEMBOLSO":"2026-07-21"},{"CODIGO":39,"MES":7,"CEDULA":36289560,"NOMBRE":"DIAZ COLLAZOS RITA ALE01DRA","FECHA":"2026-07-14","RADICACION":261003954,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":15000000,"TIPO DE CONTRATO":"Familiar","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"3628956015000000","FECHA DESEMBOLSO":"2026-07-21"},{"CODIGO":38,"MES":7,"CEDULA":1024558839,"NOMBRE":"LEAL BENITEZ KAREN LORENA","FECHA":"2026-07-14","RADICACION":261003951,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":8200000,"TIPO DE CONTRATO":"Planta Temporal","ENTIDAD":"SECRETARIA DE SEGURIDAD, CONVIVENCIA Y JUSTICIA ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10245588398200000","FECHA DESEMBOLSO":"2026-07-21"},{"CODIGO":37,"MES":7,"CEDULA":53119806,"NOMBRE":"GOMEZ HUERFANO KATHERINE LILIANA PAOLA","FECHA":"2026-07-14","RADICACION":261003959,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":5100000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"VENTANILLA","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"531198065100000","FECHA DESEMBOLSO":"2026-07-21"},{"CODIGO":36,"MES":7,"CEDULA":79232785,"NOMBRE":"CHOCONTA OTERO VICTOR MANUEL","FECHA":"2026-07-14","RADICACION":261003948,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":55200000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"7923278555200000","FECHA DESEMBOLSO":"2026-07-28"},{"CODIGO":35,"MES":7,"CEDULA":80225464,"NOMBRE":"VARGAS FONSECA JULIAN ANDRES","FECHA":"2026-07-11","RADICACION":261003917,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":26000000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"SECRETARÍA DISTRITAL DESARROLLO ECONÓMICO ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"8022546426000000","FECHA DESEMBOLSO":"2026-07-31"},{"CODIGO":34,"MES":7,"CEDULA":1013682666,"NOMBRE":"CEDEÑO VARGAS ANGIE VALENTINA","FECHA":"2026-07-11","RADICACION":261003916,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":20000000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"INTEGRACION SOCIAL ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"101368266620000000","FECHA DESEMBOLSO":"2026-07-29"},{"CODIGO":33,"MES":7,"CEDULA":1112777899,"NOMBRE":"ARENAS CASTAÑO DANIELA","FECHA":"2026-07-11","RADICACION":261003880,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":51000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"PERSONERÍA DE BOGOTÁ ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"SOLICITAR PAZ Y SALVO","LLAVE":"111277789951000000","FECHA DESEMBOLSO":"2026-07-16"},{"CODIGO":32,"MES":7,"CEDULA":53054344,"NOMBRE":"CRUZ MONTALVO OLGA MARCELA","FECHA":"2026-07-11","RADICACION":261003913,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":8000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DE CULTURA RECREACIÓN Y DEPORTE ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"530543448000000","FECHA DESEMBOLSO":"2026-07-16"},{"CODIGO":31,"MES":7,"CEDULA":82392669,"NOMBRE":"VASQUEZ PARRAGA JOHN FREDDY","FECHA":"2026-07-11","RADICACION":261003911,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":20300000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"DPTO ADMTIVO DE PLANEACIÓN DISTRITAL ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"8239266920300000","FECHA DESEMBOLSO":"2026-07-15"},{"CODIGO":30,"MES":7,"CEDULA":79825547,"NOMBRE":"LUQUE BOTTIA ROLANDO ANDRES","FECHA":"2026-07-10","RADICACION":261003900,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":4000000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"REGION METROPOLITANA ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"798255474000000","FECHA DESEMBOLSO":"2026-07-15"},{"CODIGO":29,"MES":7,"CEDULA":52726936,"NOMBRE":"LIZBETH MIREYA BERNAL LOPEZ","FECHA":"2026-07-10","RADICACION":261003895,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":10000000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"INTEGRACION SOCIAL ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5272693610000000","FECHA DESEMBOLSO":"2026-07-24"},{"CODIGO":28,"MES":7,"CEDULA":52428475,"NOMBRE":"OLAYA TORRES DIANA","FECHA":"2026-07-10","RADICACION":261003897,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":41000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"UNIDAD EJECUTIVA DE SERVICIOS PÚBLICOS – UESP ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5242847541000000","FECHA DESEMBOLSO":"2026-07-15"},{"CODIGO":27,"MES":7,"CEDULA":52214560,"NOMBRE":"BUITRAGO RAMIREZ DEYANIRA","FECHA":"2026-07-10","RADICACION":261003894,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":5000000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"522145605000000","FECHA DESEMBOLSO":"2026-07-16"},{"CODIGO":26,"MES":7,"CEDULA":19496218,"NOMBRE":"ARBOLEDA SANCHEZ PEDRO NEL","FECHA":"2026-07-10","RADICACION":261003891,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":5500000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"194962185500000","FECHA DESEMBOLSO":"2026-07-15"},{"CODIGO":25,"MES":7,"CEDULA":41720719,"NOMBRE":"GUALTEROS JIMENEZ MARIA BELEN","FECHA":"2026-07-10","RADICACION":261003889,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":4000000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"417207194000000","FECHA DESEMBOLSO":"2026-07-10"},{"CODIGO":24,"MES":7,"CEDULA":39701141,"NOMBRE":"BAUTISTA LOPEZ FABIOLA","FECHA":"2026-07-10","RADICACION":261003883,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"ANULADO","VALOR":39300000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SUB RED SUR ","ASESOR":"LEONELA BUENO","OBSERVACION":"ANULADO","ADICIONAL":"-","LLAVE":"3970114139300000","FECHA DESEMBOLSO":"-"},{"CODIGO":23,"MES":7,"CEDULA":53123770,"NOMBRE":"NOGUERA PANTOJA ANGELA MARIA","FECHA":"2026-07-08","RADICACION":261003867,"TIPO CREDITO":"CREDIPRIMA","ESTADO":"DESEMBOLSADO","VALOR":1300000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"531237701300000","FECHA DESEMBOLSO":"2026-07-10"},{"CODIGO":22,"MES":7,"CEDULA":79755657,"NOMBRE":"ESCOBAR MANCIPE OSCAR FERNANDO","FECHA":"2026-07-08","RADICACION":261003864,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":25000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DE EDUCACIÓN Y DOCENTES ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"PAGARE FISICO","LLAVE":"7975565725000000","FECHA DESEMBOLSO":"2026-08-05"},{"CODIGO":21,"MES":7,"CEDULA":19486175,"NOMBRE":"CUINTACO ARDILA JOSE VICENTE","FECHA":"2026-07-08","RADICACION":261003859,"TIPO CREDITO":"CREDIFACIL ","ESTADO":"DESEMBOLSADO","VALOR":5000000,"TIPO DE CONTRATO":"Pensionado","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"194861755000000","FECHA DESEMBOLSO":"2026-07-15"},{"CODIGO":20,"MES":7,"CEDULA":52016078,"NOMBRE":"ROBAYO VASQUEZ BLANCA INES ","FECHA":"2026-07-08","RADICACION":261003853,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":4000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"DPTO ADMTIVO DE PLANEACIÓN DISTRITAL ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"520160784000000","FECHA DESEMBOLSO":"2026-07-10"},{"CODIGO":7,"MES":7,"CEDULA":1070324431,"NOMBRE":"REYES JEIMY ROCIO","FECHA":"2026-07-08","RADICACION":261003847,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":5030000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10703244315030000","FECHA DESEMBOLSO":"2026-07-17"},{"CODIGO":19,"MES":7,"CEDULA":52847721,"NOMBRE":"URIBE TAPIERO NILEN ASTRID","FECHA":"2026-07-07","RADICACION":261003842,"TIPO CREDITO":"PATRIMONIAL ","ESTADO":"DESEMBOLSADO","VALOR":9100000,"TIPO DE CONTRATO":"Provisionalidad","ENTIDAD":"SUB RED NORTE ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"528477219100000","FECHA DESEMBOLSO":"2026-07-15"},{"CODIGO":18,"MES":7,"CEDULA":52756343,"NOMBRE":"DIAZ GARCIA NUBIA","FECHA":"2026-07-07","RADICACION":261003834,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":3140000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DE SEGURIDAD, CONVIVENCIA Y JUSTICIA ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"527563433140000","FECHA DESEMBOLSO":"2026-07-15"},{"CODIGO":4,"MES":7,"CEDULA":1019010934,"NOMBRE":"MONTERO SHANNON DAYLEN ","FECHA":"2026-07-07","RADICACION":261003839,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":18000000,"TIPO DE CONTRATO":"Contratista","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"101901093418000000","FECHA DESEMBOLSO":"2026-07-10"},{"CODIGO":17,"MES":7,"CEDULA":1032460349,"NOMBRE":"MALDONADO PARROQUIANO MAYRA ALE01DRA","FECHA":"2026-07-04","RADICACION":261003804,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":7500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"ALCALDÍA MAYOR GENERAL ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"10324603497500000","FECHA DESEMBOLSO":"2026-07-10"},{"CODIGO":16,"MES":7,"CEDULA":41947823,"NOMBRE":"MARIN PEREZ JACQUELINE","FECHA":"2026-07-04","RADICACION":261003806,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":49000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARIA DE LA MUJER","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"4194782349000000","FECHA DESEMBOLSO":"2026-07-08"},{"CODIGO":15,"MES":7,"CEDULA":39726363,"NOMBRE":"VILLARRAGA PEREZ MIRYAM HELENA","FECHA":"2026-07-04","RADICACION":261003802,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":80000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"3972636380000000","FECHA DESEMBOLSO":"2026-07-17"},{"CODIGO":14,"MES":7,"CEDULA":52839395,"NOMBRE":"GARZON VARGAS ANGELA MARCELA","FECHA":"2026-07-04","RADICACION":261003800,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":4020000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"FER","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"528393954020000","FECHA DESEMBOLSO":"2026-07-08"},{"CODIGO":13,"MES":7,"CEDULA":1022390146,"NOMBRE":"GARAY GUTIERREZ CESAR DAVID ","FECHA":"2026-07-04","RADICACION":261003799,"TIPO CREDITO":"COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":11110000,"TIPO DE CONTRATO":"Libre Nombramiento y remocion","ENTIDAD":"CONCEJO DE BOGOTÁ ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"102239014611110000","FECHA DESEMBOLSO":"2026-07-07"},{"CODIGO":12,"MES":7,"CEDULA":3059339,"NOMBRE":"GAMBOA BELTRAN EDWIN 08USTO","FECHA":"2026-07-03","RADICACION":261003784,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":22000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"305933922000000","FECHA DESEMBOLSO":"2026-07-08"},{"CODIGO":11,"MES":7,"CEDULA":51571715,"NOMBRE":"RODRIGUEZ APONTE YOLANDA","FECHA":"2026-07-03","RADICACION":261003782,"TIPO CREDITO":"PREF COMPRA CARTERA","ESTADO":"DESEMBOLSADO","VALOR":84000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5157171584000000","FECHA DESEMBOLSO":"2026-07-10"},{"CODIGO":10,"MES":7,"CEDULA":52083435,"NOMBRE":"MELGAR CHICA SANDRA LILIANA","FECHA":"2026-07-03","RADICACION":261003780,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":6000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"IPES","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"520834356000000","FECHA DESEMBOLSO":"2026-07-08"},{"CODIGO":9,"MES":7,"CEDULA":79632562,"NOMBRE":"ORTIZ CARDENAS LEONARDO","FECHA":"2026-07-03","RADICACION":261003778,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":78000000,"TIPO DE CONTRATO":"Indefinido","ENTIDAD":"ETB","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"7963256278000000","FECHA DESEMBOLSO":"2026-07-08"},{"CODIGO":6,"MES":7,"CEDULA":51590642,"NOMBRE":"PAZOS MUÑOZ MYRIAN ESTHER","FECHA":"2026-07-03","RADICACION":261003789,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":53200000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"DPTO ADMTIVO DE PLANEACIÓN DISTRITAL ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5159064253200000","FECHA DESEMBOLSO":"2026-07-06"},{"CODIGO":8,"MES":7,"CEDULA":79050646,"NOMBRE":"CANTOR SALGADO ROBERTO ANTONIO ","FECHA":"2026-07-02","RADICACION":261003771,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":17000000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"VENTANILLA","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"7905064617000000","FECHA DESEMBOLSO":"2026-07-07"},{"CODIGO":5,"MES":7,"CEDULA":52473080,"NOMBRE":"LEON FLOREZ AURA CLEMENCIA","FECHA":"2026-07-02","RADICACION":261003764,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":12000000,"TIPO DE CONTRATO":"Planta Temporal","ENTIDAD":"SECRETARIA DE SEGURIDAD, CONVIVENCIA Y JUSTICIA ","ASESOR":"CAMILA CASTAÑEDA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5247308012000000","FECHA DESEMBOLSO":"2026-07-14"},{"CODIGO":3,"MES":7,"CEDULA":80664433,"NOMBRE":"CLAVIJO SANCHEZ LUIS FERNANDO","FECHA":"2026-07-02","RADICACION":261003759,"TIPO CREDITO":"PATRIMONIAL 1-1","ESTADO":"DESEMBOLSADO","VALOR":10900000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"SECRETARÍA DISTRITAL DESARROLLO ECONÓMICO ","ASESOR":"INGRID PEDRAZA","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"8066443310900000","FECHA DESEMBOLSO":"2026-07-07"},{"CODIGO":2,"MES":7,"CEDULA":52466867,"NOMBRE":"MORALES CAMARGO EMILIA ESPERANZA","FECHA":"2026-07-01","RADICACION":261003753,"TIPO CREDITO":"PREF ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":31500000,"TIPO DE CONTRATO":"Carrera administrativa/propiedad","ENTIDAD":"UNIDAD EJECUTIVA DE SERVICIOS PÚBLICOS – UESP ","ASESOR":"LEONELA BUENO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"5246686731500000","FECHA DESEMBOLSO":"2026-07-07"},{"CODIGO":1,"MES":7,"CEDULA":1033781971,"NOMBRE":"RAMIREZ RODRIGUEZ BRAYAN ANDRES","FECHA":"2026-07-01","RADICACION":261003752,"TIPO CREDITO":"ORDINARIO ","ESTADO":"DESEMBOLSADO","VALOR":99000000,"TIPO DE CONTRATO":"Termino Indefinido","ENTIDAD":"TRANSMILENIO ","ASESOR":"ALEJANDRO CONTENTO","OBSERVACION":"GIRADO","ADICIONAL":"-","LLAVE":"103378197199000000","FECHA DESEMBOLSO":"2026-07-06"}];
+
+function popularSelectSimple(sel, valores, incluirVacio){
+  sel.innerHTML = (incluirVacio? '<option value="">Seleccione…</option>' : '') + valores.map(function(v){ return '<option value="'+v+'">'+v+'</option>'; }).join('');
+}
+
+/* ---------- Firestore refs ---------- */
+function radicacionesColRef(){ return db.collection('radicaciones'); }
+function anticiposColRef(){ return db.collection('anticipos'); }
+
+/* ================= RADICACIÓN (hoja BD) ================= */
+let gesFiltersReady = false;
+let radicacionesUnsub = null;
+
+function actualizarFiltrosGestionDesdeBD(){
+  const selAnio = document.getElementById('fGesAnio');
+  const selEstado = document.getElementById('fGesEstado');
+  if(!selAnio || !selEstado) return;
+  const prevAnio = selAnio.value, prevEstado = selEstado.value;
+  const anios = Array.from(new Set(DATA.bd.map(function(r){ const d=r['FECHA']; return d instanceof Date? d.getFullYear(): null; }).filter(Boolean))).sort();
+  fillSelect(selAnio, anios.map(String));
+  selAnio.value = (anios.map(String).indexOf(prevAnio)!==-1) ? prevAnio : 'TODOS';
+  const estados = Array.from(new Set(DATA.bd.map(function(r){return r['ESTADO'];}).filter(Boolean))).sort();
+  fillSelect(selEstado, estados);
+  selEstado.value = (estados.indexOf(prevEstado)!==-1) ? prevEstado : 'TODOS';
+
+  if(!gesFiltersReady){
+    fillSelect(document.getElementById('fGesAsesor'), EXTERNOS);
+    const selMes = document.getElementById('fGesMes');
+    selMes.innerHTML = '<option value="TODOS">Todos</option>' + MESES.map(function(m,i){return '<option value="'+(i+1)+'">'+m+'</option>';}).join('');
+    ['fGesAnio','fGesMes','fGesEstado','fGesAsesor'].forEach(function(id){
+      document.getElementById(id).addEventListener('change', renderGestion);
+    });
+    document.getElementById('searchBD').addEventListener('input', renderGestion);
+    document.getElementById('btnRefreshGes').addEventListener('click', cargarDatos);
+    document.getElementById('btnPdfGes').addEventListener('click', generarPdfGestion);
+    document.getElementById('btnLimpiarGes').addEventListener('click', function(){
+      document.getElementById('fGesAnio').value = 'TODOS';
+      document.getElementById('fGesMes').value = 'TODOS';
+      document.getElementById('fGesEstado').value = 'TODOS';
+      document.getElementById('fGesAsesor').value = 'TODOS';
+      document.getElementById('searchBD').value = '';
+      renderGestion();
+    });
+    gesFiltersReady = true;
+  }
+}
+
+function firestoreFechaToDate(v){
+  if(!v) return null;
+  if(v.toDate) return v.toDate();
+  if(v instanceof Date) return v;
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
+}
+
+function escucharRadicacionesFirestore(){
+  if(!db || radicacionesUnsub) return;
+  const st = document.getElementById('statusRadicacion');
+  radicacionesUnsub = radicacionesColRef().onSnapshot(function(snap){
+    const rows = [];
+    snap.forEach(function(doc){
+      const d = doc.data();
+      rows.push(Object.assign({}, d, { _id: doc.id, FECHA: firestoreFechaToDate(d['FECHA']) }));
+    });
+    rows.sort(function(a,b){ return Number(b['CODIGO']||0) - Number(a['CODIGO']||0); });
+    DATA.bd = rows;
+    window.RADICACIONES_CACHE = rows;
+    actualizarFiltrosGestionDesdeBD();
+    renderGestion();
+    renderTablaRadicacion();
+    if(st){ st.textContent = 'Datos al día · ' + new Date().toLocaleTimeString('es-CO'); st.className='status ok'; }
+  }, function(err){
+    console.error('Firestore radicaciones:', err);
+    if(st){ st.textContent = 'No se pudo conectar con la base en línea.'; st.className='status err'; }
+  });
+}
+
+function filtrarRadicacionTabla(){
+  const q = (document.getElementById('searchRadicacion').value||'').toString().toLowerCase();
+  return (window.RADICACIONES_CACHE||[]).filter(function(r){
+    if(!q) return true;
+    const nombre = String(r['NOMBRE']||'').toLowerCase();
+    const cedula = String(r['CEDULA']||'');
+    return nombre.indexOf(q)>-1 || cedula.indexOf(q)>-1;
+  });
+}
+
+function renderTablaRadicacion(){
+  const rows = filtrarRadicacionTabla();
+  document.getElementById('tagRadicacionCount').textContent = rows.length + ' registros';
+  const pillClass = function(e){ return e==='DESEMBOLSADO' ? 'aprob' : (e==='ANULADO'||e==='DEVOLUCION') ? 'rechaz' : 'otro'; };
+  document.querySelector('#tableRadicacion tbody').innerHTML = rows.map(function(r){
+    return '<tr>'+
+      '<td>'+(r['CODIGO']!=null?r['CODIGO']:'')+'</td>'+
+      '<td>'+(r['MES']!=null?r['MES']:'')+'</td>'+
+      '<td>'+(r['CEDULA']||'')+'</td>'+
+      '<td>'+titleCase(r['NOMBRE']||'')+'</td>'+
+      '<td>'+fmtFecha(r['FECHA'])+'</td>'+
+      '<td>'+(r['RADICACION']||'')+'</td>'+
+      '<td>'+titleCase(r['TIPO CREDITO']||'')+'</td>'+
+      '<td><span class="pill '+pillClass(r['ESTADO'])+'">'+(r['ESTADO']||'')+'</span></td>'+
+      '<td>'+fmtM(Number(r['VALOR']||0))+'</td>'+
+      '<td>'+titleCase(r['TIPO DE CONTRATO']||'')+'</td>'+
+      '<td>'+titleCase(r['ENTIDAD']||'')+'</td>'+
+      '<td>'+titleCase(r['ASESOR']||'')+'</td>'+
+      '<td>'+(r['OBSERVACION']||'')+'</td>'+
+      '<td class="table-actions">'+
+        '<button class="btn-edit-outline" onclick="abrirModalRadicacion(\''+r._id+'\')">Editar</button>'+
+        '<button class="btn-danger-outline" onclick="eliminarRadicacion(\''+r._id+'\')">Eliminar</button>'+
+      '</td>'+
+    '</tr>';
+  }).join('') || '<tr><td colspan="14" style="text-align:center;color:var(--texto-sec);">Sin registros — usa "Agregar" o "Importar base histórica BD"</td></tr>';
+}
+
+function siguienteCodigoRadicacion(){
+  const rows = window.RADICACIONES_CACHE || [];
+  let max = 0;
+  rows.forEach(function(r){ const c = Number(r['CODIGO']||0); if(c>max) max = c; });
+  return max + 1;
+}
+
+function poblarFormularioRadicacion(){
+  popularSelectSimple(document.getElementById('rad_tipo_credito'), TIPOS_CREDITO_RAD, true);
+  popularSelectSimple(document.getElementById('rad_estado'), ESTADOS_BD_LISTA, true);
+  popularSelectSimple(document.getElementById('rad_asesor'), ASESORES_RADICACION, true);
+  document.getElementById('listaEntidades').innerHTML = ENTIDADES_LISTA_RAD.map(function(e){ return '<option value="'+e+'">'; }).join('');
+  document.getElementById('rad_tipo_contrato_grid').innerHTML = TIPOS_CONTRATO_RAD.map(function(t,i){
+    return '<label><input type="radio" name="rad_tipo_contrato" value="'+t+'" '+(i===0?'checked':'')+'> '+t+'</label>';
+  }).join('');
+}
+
+function limpiarFormularioRadicacion(){
+  document.getElementById('rad_docId').value = '';
+  document.getElementById('rad_mes').value = new Date().getMonth()+1;
+  document.getElementById('rad_codigo').value = siguienteCodigoRadicacion();
+  document.getElementById('rad_cedula').value = '';
+  document.getElementById('rad_nombre').value = '';
+  document.getElementById('rad_tipo_credito').value = '';
+  document.getElementById('rad_fecha').value = new Date().toISOString().slice(0,10);
+  document.getElementById('rad_radicacion').value = '';
+  document.getElementById('rad_valor').value = '';
+  document.getElementById('rad_estado').value = 'EN RECEPCION';
+  document.getElementById('rad_asesor').value = '';
+  document.getElementById('rad_observacion').value = '';
+  document.getElementById('rad_entidad').value = '';
+  const primerRadio = document.querySelector('input[name="rad_tipo_contrato"]');
+  if(primerRadio) primerRadio.checked = true;
+  document.getElementById('radFormMsg').textContent = '';
+}
+
+function abrirModalRadicacion(id){
+  poblarFormularioRadicacion();
+  limpiarFormularioRadicacion();
+  document.getElementById('tituloModalRadicacion').textContent = id ? 'Editar registro' : 'Registro de Datos';
+  if(id){
+    const r = (window.RADICACIONES_CACHE||[]).find(function(x){return x._id===id;});
+    if(r){
+      document.getElementById('rad_docId').value = id;
+      document.getElementById('rad_mes').value = r['MES']||'';
+      document.getElementById('rad_codigo').value = r['CODIGO']||'';
+      document.getElementById('rad_cedula').value = r['CEDULA']||'';
+      document.getElementById('rad_nombre').value = r['NOMBRE']||'';
+      document.getElementById('rad_tipo_credito').value = (r['TIPO CREDITO']||'').toString().trim();
+      document.getElementById('rad_fecha').value = (r['FECHA'] instanceof Date && !isNaN(r['FECHA'])) ? r['FECHA'].toISOString().slice(0,10) : '';
+      document.getElementById('rad_radicacion').value = r['RADICACION']||'';
+      document.getElementById('rad_valor').value = r['VALOR']||'';
+      document.getElementById('rad_estado').value = (r['ESTADO']||'').toString().trim();
+      document.getElementById('rad_asesor').value = (r['ASESOR']||'').toString().trim();
+      document.getElementById('rad_observacion').value = r['OBSERVACION']||'';
+      document.getElementById('rad_entidad').value = r['ENTIDAD']||'';
+      const contratoVal = (r['TIPO DE CONTRATO']||'').toString().trim();
+      const radios = document.querySelectorAll('input[name="rad_tipo_contrato"]');
+      radios.forEach(function(rd){ rd.checked = (rd.value===contratoVal); });
+    }
+  }
+  document.getElementById('modalRadicacionBackdrop').classList.add('open');
+}
+function cerrarModalRadicacion(){
+  document.getElementById('modalRadicacionBackdrop').classList.remove('open');
+}
+
+async function guardarRadicacion(){
+  const msg = document.getElementById('radFormMsg');
+  const id = document.getElementById('rad_docId').value;
+  const codigo = Number(document.getElementById('rad_codigo').value);
+  const cedula = document.getElementById('rad_cedula').value;
+  const nombre = document.getElementById('rad_nombre').value.trim().toUpperCase();
+  const valor = Number(document.getElementById('rad_valor').value)||0;
+  const fechaStr = document.getElementById('rad_fecha').value;
+  const estado = document.getElementById('rad_estado').value;
+  const asesor = document.getElementById('rad_asesor').value;
+
+  if(!codigo){ msg.style.color='#D14550'; msg.textContent='El código es obligatorio.'; return; }
+  if(!cedula || !nombre){ msg.style.color='#D14550'; msg.textContent='Cédula y nombre son obligatorios.'; return; }
+  if(!fechaStr){ msg.style.color='#D14550'; msg.textContent='La fecha de radicación es obligatoria.'; return; }
+  if(!db){ msg.style.color='#D14550'; msg.textContent='No hay conexión con la base en línea.'; return; }
+
+  const tipoContratoEl = document.querySelector('input[name="rad_tipo_contrato"]:checked');
+  const llave = String(cedula) + String(valor);
+
+  const datos = {
+    'CODIGO': codigo,
+    'MES': Number(document.getElementById('rad_mes').value)||null,
+    'CEDULA': Number(cedula)||cedula,
+    'NOMBRE': nombre,
+    'FECHA': firebase.firestore.Timestamp.fromDate(new Date(fechaStr+'T00:00:00')),
+    'RADICACION': Number(document.getElementById('rad_radicacion').value)||null,
+    'TIPO CREDITO': document.getElementById('rad_tipo_credito').value,
+    'ESTADO': estado,
+    'VALOR': valor,
+    'TIPO DE CONTRATO': tipoContratoEl ? tipoContratoEl.value : '',
+    'ENTIDAD': document.getElementById('rad_entidad').value.trim().toUpperCase(),
+    'ASESOR': asesor,
+    'OBSERVACION': document.getElementById('rad_observacion').value.trim(),
+    'ADICIONAL': '',
+    'LLAVE': llave,
+    'FECHA DESEMBOLSO': estado==='DESEMBOLSADO' ? new Date().toISOString().slice(0,10) : '-',
+    actualizadoEn: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  msg.style.color = 'var(--texto-sec)'; msg.textContent = 'Guardando…';
+  try{
+    const docId = id || String(codigo);
+    if(!id){ datos.creadoEn = firebase.firestore.FieldValue.serverTimestamp(); }
+    await radicacionesColRef().doc(docId).set(datos, {merge:true});
+    cerrarModalRadicacion();
+  }catch(e){
+    console.error(e);
+    msg.style.color='#D14550'; msg.textContent = 'Error al guardar: ' + e.message;
+  }
+}
+
+async function eliminarRadicacion(id){
+  if(!confirm('¿Eliminar este registro de radicación? Esta acción no se puede deshacer.')) return;
+  try{ await radicacionesColRef().doc(id).delete(); }
+  catch(e){ alert('Error al eliminar: ' + e.message); }
+}
+
+async function importarHistoricoBD(){
+  if(!db) return;
+  const nota = document.getElementById('importNoteRadicacion');
+  if(!confirm('Se importarán ' + BD_HISTORICO.length + ' registros históricos de la hoja BD a la base en línea. Los registros ya existentes (mismo código) no se duplican. ¿Continuar?')) return;
+  nota.textContent = 'Importando histórico…';
+  try{
+    const batchSize = 400;
+    for(let i=0;i<BD_HISTORICO.length;i+=batchSize){
+      const batch = db.batch();
+      BD_HISTORICO.slice(i,i+batchSize).forEach(function(r){
+        const ref = radicacionesColRef().doc(String(r['CODIGO']));
+        const datos = Object.assign({}, r);
+        datos['FECHA'] = r['FECHA'] ? firebase.firestore.Timestamp.fromDate(new Date(r['FECHA']+'T00:00:00')) : null;
+        datos.creadoEn = firebase.firestore.FieldValue.serverTimestamp();
+        batch.set(ref, datos, {merge:true});
+      });
+      await batch.commit();
+    }
+    nota.textContent = 'Importación completa: ' + BD_HISTORICO.length + ' registros históricos cargados.';
+  }catch(e){
+    console.error(e);
+    nota.textContent = 'Error al importar: ' + e.message;
+  }
+}
+
+async function descargarInformeBD(){
+  const btn = document.getElementById('btnDescargarBD');
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Generando…';
+  try{
+    const rows = (window.RADICACIONES_CACHE||[]).slice().sort(function(a,b){ return Number(a['CODIGO']||0) - Number(b['CODIGO']||0); });
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('BD');
+    const headers = ['CODIGO','MES','CEDULA','NOMBRE ','FECHA','RADICACION ','TIPO CREDITO','ESTADO','VALOR ','TIPO DE CONTRATO','ENTIDAD','ASESOR','OBSERVACION','ADICIONAL','LLAVE','FECHA DESEMBOLSO'];
+    const widths = [8.71,4.86,11,43.86,11.29,12.86,21.71,38.86,13.57,31.14,48.29,22.71,78.14,22.43,20.14,16];
+    ws.columns = headers.map(function(h,i){ return { width: widths[i] }; });
+    ws.getRow(1).getCell(1).value = ' ';
+    const headerRow = ws.getRow(4);
+    headers.forEach(function(h,i){ headerRow.getCell(i+1).value = h; });
+    headerRow.height = 41.75;
+    headerRow.eachCell(function(cell){
+      cell.font = { name:'Aptos Narrow', size:11, bold:true };
+      cell.alignment = { horizontal:'center', vertical:'middle', wrapText:true };
+      cell.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
+    });
+    rows.forEach(function(r, idx){
+      const row = ws.getRow(5+idx);
+      const fecha = r['FECHA'] instanceof Date ? r['FECHA'] : null;
+      const vals = [
+        r['CODIGO']||'', r['MES']||'', r['CEDULA']||'', r['NOMBRE']||'', fecha, r['RADICACION']||'',
+        r['TIPO CREDITO']||'', r['ESTADO']||'', Number(r['VALOR']||0), r['TIPO DE CONTRATO']||'',
+        r['ENTIDAD']||'', r['ASESOR']||'', r['OBSERVACION']||'', r['ADICIONAL']||'', r['LLAVE']||'', r['FECHA DESEMBOLSO']||'-'
+      ];
+      vals.forEach(function(v,i){ row.getCell(i+1).value = v; });
+      row.getCell(5).numFmt = 'm/d/yyyy';
+      row.getCell(9).numFmt = '_-$* #,##0_-;"-$"* #,##0_-;_-$* \\-??_-;_-@_-';
+      row.eachCell({includeEmpty:true}, function(cell){
+        cell.font = { name:'Aptos Narrow', size:11 };
+        cell.alignment = { horizontal:'center', vertical:'center' };
+        cell.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
+      });
+    });
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {type:'application/octet-stream'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'BD_Radicaciones_COOPEBIS.xlsx';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }catch(e){
+    console.error(e);
+    alert('No se pudo generar el archivo: ' + e.message);
+  }finally{
+    btn.disabled = false; btn.textContent = original;
+  }
+}
+
+/* ================= ANTICIPOS ================= */
+let anticiposUnsub = null;
+function escucharAnticiposFirestore(){
+  if(!db || anticiposUnsub) return;
+  const st = document.getElementById('statusAnticipo');
+  anticiposUnsub = anticiposColRef().onSnapshot(function(snap){
+    const rows = [];
+    snap.forEach(function(doc){
+      const d = doc.data();
+      rows.push(Object.assign({}, d, { _id: doc.id, FECHA: firestoreFechaToDate(d['FECHA']) }));
+    });
+    rows.sort(function(a,b){
+      const fa = a['FECHA'] instanceof Date ? a['FECHA'].getTime() : 0;
+      const fb = b['FECHA'] instanceof Date ? b['FECHA'].getTime() : 0;
+      if(fa!==fb) return fa-fb;
+      return String(a._id).localeCompare(String(b._id));
+    });
+    let saldo = 0, totalEgresos = 0;
+    rows.forEach(function(r){ saldo -= Number(r['EGRESO']||0); totalEgresos += Number(r['EGRESO']||0); r._saldoCorrido = saldo; });
+    window.ANTICIPOS_CACHE = rows;
+    document.getElementById('saldoActualAnticipos').textContent = '$'+saldo.toLocaleString('es-CO');
+    document.getElementById('totalEgresosAnticipos').textContent = '$'+totalEgresos.toLocaleString('es-CO');
+    renderTablaAnticipos();
+    if(st){ st.textContent = 'Datos al día · ' + new Date().toLocaleTimeString('es-CO'); st.className='status ok'; }
+  }, function(err){
+    console.error('Firestore anticipos:', err);
+    if(st){ st.textContent = 'No se pudo conectar con la base en línea.'; st.className='status err'; }
+  });
+}
+
+function filtrarAnticiposTabla(){
+  const q = (document.getElementById('searchAnticipo').value||'').toString().toLowerCase();
+  return (window.ANTICIPOS_CACHE||[]).filter(function(r){
+    if(!q) return true;
+    return String(r['ASESOR']||'').toLowerCase().indexOf(q)>-1 || String(r['CONCEPTO']||'').toLowerCase().indexOf(q)>-1;
+  });
+}
+
+function renderTablaAnticipos(){
+  const rows = filtrarAnticiposTabla().slice().reverse();
+  document.getElementById('tagAnticiposCount').textContent = rows.length + ' registros';
+  const pillClass = function(e){ return e==='LEGALIZO' ? 'aprob' : (e==='DEVOLUCION') ? 'rechaz' : 'proceso'; };
+  document.querySelector('#tableAnticipos tbody').innerHTML = rows.map(function(r){
+    return '<tr>'+
+      '<td>'+fmtFecha(r['FECHA'])+'</td>'+
+      '<td>'+titleCase(r['ASESOR']||'')+'</td>'+
+      '<td>'+(r['CONCEPTO']||'')+'</td>'+
+      '<td>$'+Number(r['EGRESO']||0).toLocaleString('es-CO')+'</td>'+
+      '<td>$'+Number(r._saldoCorrido||0).toLocaleString('es-CO')+'</td>'+
+      '<td><span class="pill '+pillClass(r['ESTADO'])+'">'+(r['ESTADO']||'')+'</span></td>'+
+      '<td>'+(r['OBSERVACIONES']||'')+'</td>'+
+      '<td class="table-actions">'+
+        '<button class="btn-edit-outline" onclick="abrirModalAnticipo(\''+r._id+'\')">Editar</button>'+
+        '<button class="btn-danger-outline" onclick="eliminarAnticipo(\''+r._id+'\')">Eliminar</button>'+
+      '</td>'+
+    '</tr>';
+  }).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--texto-sec);">Sin registros — usa "Agregar"</td></tr>';
+}
+
+function poblarFormularioAnticipo(){
+  document.getElementById('listaAsesoresAnticipo').innerHTML = ASESORES_ANTICIPO_LISTA.map(function(a){ return '<option value="'+a+'">'; }).join('');
+}
+function limpiarFormularioAnticipo(){
+  document.getElementById('ant_docId').value = '';
+  document.getElementById('ant_fecha').value = new Date().toISOString().slice(0,10);
+  document.getElementById('ant_asesor').value = '';
+  document.getElementById('ant_concepto').value = '';
+  document.getElementById('ant_egreso').value = '';
+  document.getElementById('ant_estado').value = 'PENDIENTE';
+  document.getElementById('ant_observaciones').value = '';
+  document.getElementById('antFormMsg').textContent = '';
+}
+function abrirModalAnticipo(id){
+  poblarFormularioAnticipo();
+  limpiarFormularioAnticipo();
+  document.getElementById('tituloModalAnticipo').textContent = id ? 'Editar anticipo' : 'Registro de anticipo';
+  if(id){
+    const r = (window.ANTICIPOS_CACHE||[]).find(function(x){return x._id===id;});
+    if(r){
+      document.getElementById('ant_docId').value = id;
+      document.getElementById('ant_fecha').value = (r['FECHA'] instanceof Date && !isNaN(r['FECHA'])) ? r['FECHA'].toISOString().slice(0,10) : '';
+      document.getElementById('ant_asesor').value = r['ASESOR']||'';
+      document.getElementById('ant_concepto').value = r['CONCEPTO']||'';
+      document.getElementById('ant_egreso').value = r['EGRESO']||'';
+      document.getElementById('ant_estado').value = r['ESTADO']||'PENDIENTE';
+      document.getElementById('ant_observaciones').value = r['OBSERVACIONES']||'';
+    }
+  }
+  document.getElementById('modalAnticipoBackdrop').classList.add('open');
+}
+function cerrarModalAnticipo(){
+  document.getElementById('modalAnticipoBackdrop').classList.remove('open');
+}
+async function guardarAnticipo(){
+  const msg = document.getElementById('antFormMsg');
+  const id = document.getElementById('ant_docId').value;
+  const fechaStr = document.getElementById('ant_fecha').value;
+  const asesor = document.getElementById('ant_asesor').value.trim().toUpperCase();
+  const concepto = document.getElementById('ant_concepto').value.trim();
+  const egreso = Number(document.getElementById('ant_egreso').value)||0;
+  if(!fechaStr || !asesor || !concepto){ msg.style.color='#D14550'; msg.textContent='Fecha, asesor y concepto son obligatorios.'; return; }
+  if(!db){ msg.style.color='#D14550'; msg.textContent='No hay conexión con la base en línea.'; return; }
+  const datos = {
+    'FECHA': firebase.firestore.Timestamp.fromDate(new Date(fechaStr+'T00:00:00')),
+    'ASESOR': asesor,
+    'CONCEPTO': concepto,
+    'EGRESO': egreso,
+    'ESTADO': document.getElementById('ant_estado').value,
+    'OBSERVACIONES': document.getElementById('ant_observaciones').value.trim(),
+    actualizadoEn: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  msg.style.color = 'var(--texto-sec)'; msg.textContent = 'Guardando…';
+  try{
+    if(id){ await anticiposColRef().doc(id).set(datos, {merge:true}); }
+    else{ datos.creadoEn = firebase.firestore.FieldValue.serverTimestamp(); await anticiposColRef().add(datos); }
+    cerrarModalAnticipo();
+  }catch(e){
+    console.error(e);
+    msg.style.color='#D14550'; msg.textContent = 'Error al guardar: ' + e.message;
+  }
+}
+async function eliminarAnticipo(id){
+  if(!confirm('¿Eliminar este anticipo? Esta acción no se puede deshacer.')) return;
+  try{ await anticiposColRef().doc(id).delete(); }
+  catch(e){ alert('Error al eliminar: ' + e.message); }
+}
+
+/* ---------- Enlazar botones de las nuevas vistas (solo se ejecuta una vez) ---------- */
+document.getElementById('btnAgregarRadicacion').addEventListener('click', function(){ abrirModalRadicacion(null); });
+document.getElementById('btnCerrarModalRadicacion').addEventListener('click', cerrarModalRadicacion);
+document.getElementById('btnCancelarRadicacion').addEventListener('click', cerrarModalRadicacion);
+document.getElementById('btnGuardarRadicacion').addEventListener('click', guardarRadicacion);
+document.getElementById('modalRadicacionBackdrop').addEventListener('click', function(e){ if(e.target===this) cerrarModalRadicacion(); });
+document.getElementById('btnDescargarBD').addEventListener('click', descargarInformeBD);
+document.getElementById('btnImportarHistoricoBD').addEventListener('click', importarHistoricoBD);
+document.getElementById('searchRadicacion').addEventListener('input', renderTablaRadicacion);
+
+document.getElementById('btnAgregarAnticipo').addEventListener('click', function(){ abrirModalAnticipo(null); });
+document.getElementById('btnCerrarModalAnticipo').addEventListener('click', cerrarModalAnticipo);
+document.getElementById('btnCancelarAnticipo').addEventListener('click', cerrarModalAnticipo);
+document.getElementById('btnGuardarAnticipo').addEventListener('click', guardarAnticipo);
+document.getElementById('modalAnticipoBackdrop').addEventListener('click', function(e){ if(e.target===this) cerrarModalAnticipo(); });
+document.getElementById('searchAnticipo').addEventListener('input', renderTablaAnticipos);
 function mostrarApp(){
   document.getElementById('lockScreen').style.display='none';
   document.getElementById('appContent').style.display='block';
   document.getElementById('navAdmin').style.display = ES_ADMIN ? 'inline-block' : 'none';
   document.getElementById('navActualizaciones').style.display = ES_ADMIN ? 'inline-block' : 'none';
+  document.getElementById('navRadicacion').style.display = ES_ADMIN ? 'inline-block' : 'none';
+  document.getElementById('navAnticipos').style.display = ES_ADMIN ? 'inline-block' : 'none';
   if(ES_ADMIN){ escucharSesiones(); escucharSolicitudesCredito(); }
+  // La Gestión Externos (hoja BD) ahora se alimenta en línea desde Firestore, la vean o no admins.
+  escucharRadicacionesFirestore();
+  escucharAnticiposFirestore();
 }
 function pedirAcceso(){
   if(sessionStorage.getItem('coopebis_admin') === '1'){
@@ -1386,12 +2065,12 @@ async function cargarDatos(){
     const buffer = await res.arrayBuffer();
     const wb = XLSX.read(buffer, {type:'array', cellDates:true});
 
-    const bdSheet = wb.Sheets['BD'];
+    // La hoja BD ya no se lee de este archivo: desde ahora se administra en línea (Firestore),
+    // vía la sección Radicación del Panel Admin. Solo se necesita mantener actualizada la hoja COLOCACION.
     const colocSheet = wb.Sheets['COLOCACION'];
     const metasSheet = wb.Sheets['METAS  Y PORCENTAJES'] || wb.Sheets['METAS Y PORCENTAJES'];
     const desMetasSheet = wb.Sheets['DESEMBOLSO VS METAS'];
 
-    DATA.bd = bdSheet ? trimKeys(XLSX.utils.sheet_to_json(bdSheet,{defval:''})) : [];
     DATA.coloc = colocSheet ? trimKeys(XLSX.utils.sheet_to_json(colocSheet,{defval:''})) : [];
     const metasRows = metasSheet ? trimKeys(XLSX.utils.sheet_to_json(metasSheet,{defval:''})) : [];
     DATA.metas = metasRows[0] || {};
@@ -1399,14 +2078,13 @@ async function cargarDatos(){
     DATA.ejecutivoMap = construirMapaEjecutivos(DATA.coloc);
 
     initColFilters();
-    initGesFilters();
     renderColocacion();
-    renderGestion();
+    if(DATA.bd.length) renderGestion();
 
     const okMsg = 'Actualizado ' + new Date().toLocaleTimeString('es-CO');
     if(s1){ s1.textContent=okMsg; s1.className='status ok'; }
     if(s2){ s2.textContent=okMsg; s2.className='status ok'; }
-    if(s3) s3.textContent = 'Datos al día · ' + DATA.coloc.length + ' registros de colocación · ' + DATA.bd.length + ' registros en BD';
+    if(s3) s3.textContent = 'Datos al día · ' + DATA.coloc.length + ' registros de colocación · ' + DATA.bd.length + ' registros en BD (en línea)';
   }catch(err){
     const msg='Error: '+err.message;
     if(s1){ s1.textContent=msg; s1.className='status err'; }
