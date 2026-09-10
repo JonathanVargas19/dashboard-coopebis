@@ -1927,7 +1927,7 @@ document.getElementById('cardFormularioCredito').addEventListener('click', funct
   const backdrop = document.getElementById('formLinkModalBackdrop');
   const url = window.location.origin + window.location.pathname + '?formulario=credito';
   document.getElementById('formLinkA').href = url;
-  document.getElementById('formLinkA').textContent = url;
+  document.getElementById('formLinkA').textContent = 'Formulario Coopebis';
   backdrop.style.display = 'flex';
 });
 document.getElementById('btnCopyFormLink').addEventListener('click', function(e){
@@ -2138,14 +2138,20 @@ async function cruzarDesembolsosConColocacion(esCargaColocacion){
     return;
   }
 
-  // Mapa LLAVE (colocación) -> { fecha, nombre, cedula }
+  // Mapa LLAVE (colocación) -> { fecha, nombre, cedula }. Si una LLAVE tiene varios desembolsos
+  // (varias filas en COLOCACIÓN con la misma LLAVE), se conserva la fecha MÁS RECIENTE.
   const mapaColoc = {};
   DATA.coloc.forEach(function(r){
     const llave = String(r[COLOC_COL_LLAVE]==null?'':r[COLOC_COL_LLAVE]).trim();
     if(!llave) return;
     const fecha = formatearFechaDesembolsoValor(r[COLOC_COL_FECHA_DESEMB]);
     const info = { fecha:fecha, nombre: COLOC_COL_NOMBRE ? r[COLOC_COL_NOMBRE] : '', cedula: COLOC_COL_CEDULA ? r[COLOC_COL_CEDULA] : '' };
-    if(fecha || !mapaColoc[llave]) mapaColoc[llave] = info;
+    const existente = mapaColoc[llave];
+    if(!existente){
+      mapaColoc[llave] = info;
+    } else if(fecha && (!existente.fecha || fecha > existente.fecha)){
+      mapaColoc[llave] = info; // fecha más reciente encontrada, reemplaza la anterior
+    }
   });
 
   const llavesRadicacion = new Set();
