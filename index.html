@@ -71,26 +71,92 @@
   .view.active{display:block;animation:fade .25s ease;}
   @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
 
-  .home-hero{text-align:center;padding:50px 20px 30px;}
-  .home-hero img{height:72px;display:block;}
-  .home-hero .logo-chip{padding:10px 16px;border-radius:14px;margin-bottom:18px;box-shadow:0 4px 14px rgba(0,0,0,.12);}
-  .home-hero h1{font-size:22px;font-weight:700;margin:0 0 6px;}
-  .home-hero p{color:var(--texto-sec);font-size:13px;margin:0;}
-  .home-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px;max-width:1200px;margin:36px auto 0;}
-  body.mobile .home-cards{grid-template-columns:1fr;}
-  .home-card{
-    background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:30px 26px;
-    cursor:pointer;transition:.2s;position:relative;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.09);
+  .home-footer-note{text-align:center;color:var(--texto-sec);font-size:10.5px;margin-top:28px;}
+
+  /* ============================================================
+     INICIO — INFOGRAFÍA ANIMADA
+     Sala de control con pulso de colocación en vivo + accesos.
+     ============================================================ */
+  @keyframes riseIn{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes drawPulse{to{stroke-dashoffset:0;}}
+  @keyframes glowPulse{0%,100%{opacity:.55;}50%{opacity:1;}}
+  @keyframes floatSlow{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+  @keyframes dashCreep{to{stroke-dashoffset:-140;}}
+  @media (prefers-reduced-motion: reduce){
+    .home-stage *, .home-panel *{animation:none !important;transition:none !important;}
   }
-  .home-card:hover{border-color:var(--azul-primario);transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.16);}
-  .home-card::before{content:"";position:absolute;top:0;left:0;width:5px;height:100%;background:var(--azul-comp1);}
-  .home-card.gold::before{background:var(--dorado);}
-  .home-card .icon{font-size:30px;margin-bottom:14px;}
-  .home-card h3{font-size:15px;margin:0 0 8px;font-weight:600;}
-  .home-card p{font-size:11.5px;color:var(--texto-sec);margin:0 0 16px;line-height:1.5;}
-  .home-card .go{font-size:11.5px;color:var(--azul-comp1);font-weight:600;}
-  .home-card.gold .go{color:var(--dorado);}
-  .home-footer-note{text-align:center;color:var(--texto-sec);font-size:10.5px;margin-top:40px;}
+
+  .home-stage{
+    position:relative;overflow:hidden;margin-top:6px;border-radius:22px;
+    background:radial-gradient(120% 160% at 12% 0%, #0A4A5E 0%, var(--azul-primario) 46%, #041B24 100%);
+    padding:46px 34px 38px;color:#EAF3F5;
+    box-shadow:0 18px 50px rgba(1,46,63,.35);
+  }
+  .home-stage::after{
+    content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background-image:radial-gradient(rgba(80,214,221,.16) 1px, transparent 1.4px);
+    background-size:26px 26px;mask-image:linear-gradient(to bottom, rgba(0,0,0,.9), transparent 78%);
+  }
+  .stage-top{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .stage-top .logo-chip{background:rgba(255,255,255,.94);padding:8px 12px;border-radius:12px;border:none;}
+  .stage-top .logo-chip img{height:30px;display:block;}
+  .stage-live{display:flex;align-items:center;gap:7px;font-size:11px;color:#BFE7EA;}
+  .stage-live .dot{width:7px;height:7px;border-radius:50%;background:var(--turquesa);animation:glowPulse 1.8s ease-in-out infinite;}
+
+  .stage-body{position:relative;z-index:2;margin-top:30px;opacity:0;animation:riseIn .7s ease .05s forwards;}
+  .stage-body p.kicker{font-size:12.5px;color:#9FD3D8;margin:0 0 10px;max-width:520px;}
+  .stage-title{font-size:clamp(26px,4.2vw,42px);font-weight:800;line-height:1.08;letter-spacing:-.01em;margin:0 0 14px;max-width:640px;}
+  .stage-title span{color:var(--turquesa);}
+
+  .pulse-wrap{position:relative;z-index:2;margin:26px 0 6px;height:70px;opacity:0;animation:riseIn .7s ease .2s forwards;}
+  .pulse-wrap svg{width:100%;height:100%;display:block;overflow:visible;}
+  .pulse-line-bg{fill:none;stroke:rgba(80,214,221,.18);stroke-width:2;}
+  .pulse-line-fg{fill:none;stroke:var(--turquesa);stroke-width:2.4;stroke-linecap:round;filter:drop-shadow(0 0 5px rgba(80,214,221,.55));}
+  .pulse-dot{fill:var(--dorado);}
+
+  .metric-row{position:relative;z-index:2;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:10px;opacity:0;animation:riseIn .7s ease .35s forwards;}
+  body.mobile .metric-row{grid-template-columns:1fr;}
+  .metric{border-left:2px solid rgba(255,255,255,.14);padding-left:14px;}
+  .metric .num{font-size:clamp(22px,3vw,30px);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+  .metric.c-turquesa .num{color:var(--turquesa);}
+  .metric.c-dorado .num{color:var(--dorado);}
+  .metric.c-blanco .num{color:#fff;}
+  .metric .lbl{font-size:11.5px;color:#AFD3D6;margin-top:3px;}
+
+  .home-panels{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+    max-width:1200px;margin:30px auto 0;
+  }
+  body.mobile .home-panels{grid-template-columns:1fr;}
+  .home-panel{
+    position:relative;overflow:hidden;border-radius:16px;padding:26px 24px 24px;cursor:pointer;
+    border:1px solid var(--borde);transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s ease;
+    opacity:0;animation:riseIn .6s ease forwards;box-shadow:0 6px 18px rgba(1,46,63,.1);
+  }
+  .home-panel:nth-child(1){animation-delay:.45s;}
+  .home-panel:nth-child(2){animation-delay:.55s; transform:translateY(-10px);}
+  .home-panel:nth-child(3){animation-delay:.65s;}
+  body.mobile .home-panel:nth-child(2){transform:none;}
+  .home-panel:hover{transform:translateY(-6px);box-shadow:0 16px 30px rgba(1,46,63,.2);}
+  .home-panel.dark{background:var(--azul-primario);color:#EAF3F5;border-color:var(--azul-primario);}
+  .home-panel.light{background:var(--panel);color:var(--texto);}
+  .home-panel .tag{display:inline-block;font-size:10.5px;padding:4px 10px;border-radius:20px;margin-bottom:14px;}
+  .home-panel.dark .tag{background:rgba(80,214,221,.16);color:var(--turquesa);}
+  .home-panel.light .tag{background:rgba(210,187,29,.14);color:#8a6a10;}
+  .home-panel h3{font-size:16.5px;margin:0 0 8px;font-weight:700;}
+  .home-panel p{font-size:11.8px;line-height:1.55;margin:0 0 16px;opacity:.85;}
+  .home-panel .go{font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:6px;}
+  .home-panel.dark .go{color:var(--turquesa);}
+  .home-panel.light .go{color:var(--azul-comp1);}
+  .home-panel .go .arrow{transition:transform .2s ease;}
+  .home-panel:hover .go .arrow{transform:translateX(4px);}
+  .home-panel .spark{position:absolute;right:-6px;bottom:-6px;width:120px;height:70px;opacity:.9;pointer-events:none;}
+  .home-panel .spark path{fill:none;stroke-width:2;}
+  .home-panel.dark .spark path{stroke:rgba(80,214,221,.55);}
+  .home-panel.light .spark path{stroke:rgba(2,115,191,.28);}
+  .home-panel .spark .accent{stroke:var(--dorado) !important;}
+  .home-panel .doc-icon{position:absolute;right:18px;bottom:16px;width:46px;height:56px;animation:floatSlow 3.2s ease-in-out infinite;}
+
 
   .filters{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap;}
   select, input[type=text]{
@@ -606,31 +672,59 @@
   </div>
 
   <div class="view active" id="view-home">
-    <div class="home-hero">
-      <div class="logo-chip"><img id="logoHero" src="" alt="COOPEBIS"></div>
-      <h1>Panel de Gestión de Radicaciones</h1>
-      <p>Selecciona una sección para comenzar</p>
+    <div class="home-stage">
+      <div class="stage-top">
+        <div class="logo-chip"><img id="logoHero" src="" alt="COOPEBIS"></div>
+        <div class="stage-live"><span class="dot"></span> Datos en vivo</div>
+      </div>
+
+      <div class="stage-body">
+        <p class="kicker">Cooperativa para el Bienestar Social · Panel interno de radicaciones</p>
+        <h1 class="stage-title">El pulso de la colocación, <span>en un solo lugar</span>.</h1>
+      </div>
+
+      <div class="pulse-wrap">
+        <svg viewBox="0 0 1000 70" preserveAspectRatio="none">
+          <path class="pulse-line-bg" d="M0,45 L120,45 L150,20 L180,58 L210,45 L400,45 L430,15 L460,45 L1000,45"/>
+          <path id="pulseFg" class="pulse-line-fg" d="M0,45 L120,45 L150,20 L180,58 L210,45 L400,45 L430,15 L460,45 L1000,45"/>
+          <circle class="pulse-dot" cx="150" cy="20" r="4"/>
+          <circle class="pulse-dot" cx="430" cy="15" r="4"/>
+        </svg>
+      </div>
+
+      <div class="metric-row">
+        <div class="metric c-turquesa"><div class="num" id="mColocado">$0</div><div class="lbl">Colocado (año en curso)</div></div>
+        <div class="metric c-dorado"><div class="num" id="mCumplimiento">0%</div><div class="lbl">Cumplimiento de meta</div></div>
+        <div class="metric c-blanco"><div class="num" id="mRadicaciones">0</div><div class="lbl">Radicaciones en línea</div></div>
+      </div>
     </div>
-    <div class="home-cards">
-      <div class="home-card" data-goto="colocacion">
-        <div class="icon">📊</div>
+
+    <div class="home-panels">
+      <div class="home-panel light" data-goto="colocacion">
+        <span class="tag">Colocación</span>
         <h3>Base General / Colocación</h3>
-        <p>Consulta el total desembolsado, créditos radicados y cumplimiento de metas por año, mes, oficina (Principal, Centro y Externos) y línea de crédito.</p>
-        <div class="go">Ir a Colocación →</div>
+        <p>Total desembolsado, créditos radicados y cumplimiento de metas por año, mes, oficina y línea de crédito.</p>
+        <div class="go">Ir a Colocación <span class="arrow">→</span></div>
+        <svg class="spark" viewBox="0 0 120 70"><path d="M2,50 20,44 38,52 56,30 74,38 92,18 118,24"/></svg>
       </div>
-      <div class="home-card gold" data-goto="gestion">
-        <div class="icon">🎯</div>
-        <h3>Gestión Externos</h3>
-        <p>Seguimiento exclusivo de la gestión de Leonela Bueno, Alejandro Contento e Ingrid Pedraza: cumplimiento, ranking y estado de la base.</p>
-        <div class="go">Ir a Gestión Externos →</div>
+
+      <div class="home-panel dark" data-goto="gestion">
+        <span class="tag">Gestión Externos</span>
+        <h3>Ranking de ejecutivos</h3>
+        <p>Seguimiento de Leonela Bueno, Alejandro Contento e Ingrid Pedraza: cumplimiento, ranking y estado de la base.</p>
+        <div class="go">Ir a Gestión Externos <span class="arrow">→</span></div>
+        <svg class="spark" viewBox="0 0 120 70"><path class="accent" d="M2,60 22,38 42,46 62,20 82,28 102,10 118,16"/></svg>
       </div>
-      <div class="home-card" id="cardFormularioCredito">
-        <div class="icon">📝</div>
+
+      <div class="home-panel light" id="cardFormularioCredito">
+        <span class="tag">Formulario</span>
         <h3>Formulario de Crédito</h3>
-        <p>Genera el link público de la solicitud de crédito para que el cliente la diligencie en línea, sin ver el resto del panel.</p>
-        <div class="go">Obtener link del formulario →</div>
+        <p>Genera el link público de la solicitud de crédito para que el cliente la diligencie en línea.</p>
+        <div class="go">Obtener link del formulario <span class="arrow">→</span></div>
+        <svg class="doc-icon" viewBox="0 0 46 56"><rect x="1" y="1" width="44" height="54" rx="4" fill="#fff" stroke="var(--azul-comp1)" stroke-width="2"/><line x1="9" y1="16" x2="37" y2="16" stroke="var(--azul-comp1)" stroke-width="2"/><line x1="9" y1="26" x2="37" y2="26" stroke="var(--dorado)" stroke-width="2"/><line x1="9" y1="36" x2="28" y2="36" stroke="var(--azul-comp1)" stroke-width="2"/></svg>
       </div>
     </div>
+
     <div class="home-footer-note" id="homeStatus">Cargando datos…</div>
   </div>
 
@@ -932,6 +1026,57 @@ function goTo(view){
 }
 document.querySelectorAll('.nav-btn').forEach(function(b){b.addEventListener('click',function(){goTo(b.dataset.view);});});
 document.querySelectorAll('[data-goto]').forEach(function(el){el.addEventListener('click',function(){goTo(el.dataset.goto);});});
+
+/* ================= INICIO — INFOGRAFÍA ANIMADA ================= */
+function initHomeInfografia(){
+  const path = document.getElementById('pulseFg');
+  if(path){
+    const len = path.getTotalLength();
+    path.style.strokeDasharray = len;
+    path.style.strokeDashoffset = len;
+    path.getBoundingClientRect(); // fuerza reflow antes de animar
+    path.style.transition = 'stroke-dashoffset 1.6s cubic-bezier(.2,.7,.2,1) .5s';
+    requestAnimationFrame(function(){ path.style.strokeDashoffset = 0; });
+  }
+}
+
+function animarContador(id, valorFinal, formatear){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const desde = Number(el.dataset.valor || 0);
+  if(Math.abs(desde - valorFinal) < 0.5 && el.dataset.valor) { el.textContent = formatear(valorFinal); return; }
+  const duracion = 1100, inicio = performance.now();
+  function paso(ahora){
+    const t = Math.min(1, (ahora - inicio) / duracion);
+    const ease = 1 - Math.pow(1 - t, 3);
+    const actual = desde + (valorFinal - desde) * ease;
+    el.textContent = formatear(actual);
+    if(t < 1) requestAnimationFrame(paso); else el.dataset.valor = valorFinal;
+  }
+  requestAnimationFrame(paso);
+}
+
+function fmtCompactoCOP(n){
+  n = Number(n)||0;
+  if(n >= 1000000000) return '$' + (n/1000000000).toFixed(1).replace(/\.0$/,'') + 'MM';
+  if(n >= 1000000) return '$' + (n/1000000).toFixed(1).replace(/\.0$/,'') + 'M';
+  if(n >= 1000) return '$' + Math.round(n/1000) + 'K';
+  return '$' + Math.round(n);
+}
+
+function actualizarMetricasHome(){
+  const totalColocado = (DATA.desMetas||[]).reduce(function(s,r){return s+Number(r['VALOR DESEMBOLSADO']||0);},0);
+  const cumplimiento = Number((DATA.metas||{})['%CUMPLIMIENTO GENERAL']||0);
+  const cumplPct = cumplimiento > 0 && cumplimiento <= 1 ? cumplimiento*100 : cumplimiento;
+  const radicaciones = (DATA.bd||[]).length;
+
+  animarContador('mColocado', totalColocado, fmtCompactoCOP);
+  animarContador('mCumplimiento', cumplPct, function(v){ return Math.round(v) + '%'; });
+  animarContador('mRadicaciones', radicaciones, function(v){ return Math.round(v).toLocaleString('es-CO'); });
+}
+
+initHomeInfografia();
+
 goTo('home');
 
 /* ===== Acceso: nombre + contraseña (usuarios) / contraseña admin — con Firebase para monitoreo en vivo ===== */
@@ -1091,6 +1236,7 @@ function escucharRadicacionesFirestore(){
     renderGestion();
     renderTablaRadicacion();
     cruzarDesembolsosConColocacion(false);
+    actualizarMetricasHome();
     if(st){ st.textContent = 'Datos al día · ' + new Date().toLocaleTimeString('es-CO'); st.className='status ok'; }
   }, function(err){
     console.error('Firestore radicaciones:', err);
@@ -2246,6 +2392,7 @@ async function cargarDatos(){
     if(s1){ s1.textContent=okMsg; s1.className='status ok'; }
     if(s2){ s2.textContent=okMsg; s2.className='status ok'; }
     if(s3) s3.textContent = 'Datos al día · ' + DATA.coloc.length + ' registros de colocación · ' + DATA.bd.length + ' registros en BD (en línea)';
+    actualizarMetricasHome();
   }catch(err){
     const msg='Error: '+err.message;
     if(s1){ s1.textContent=msg; s1.className='status err'; }
