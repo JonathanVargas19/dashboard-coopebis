@@ -364,6 +364,122 @@
   #tableRadicacion td.truncate{white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}
   #tableRadicacion .table-actions{white-space:nowrap;}
   #tableRadicacion .btn-edit-outline, #tableRadicacion .btn-danger-outline{padding:4px 7px;font-size:9.5px;margin-right:4px;}
+
+  /* =========================================================
+     REDISEÑO PREMIUM — identidad visual de Inicio extendida
+     a todas las vistas internas (view-hero, dock, tarjetas,
+     tablas, botones, modales)
+     ========================================================= */
+
+  .nav-ic{display:inline-block;margin-right:6px;font-size:12px;opacity:.85;transform:translateY(-1px);}
+
+  /* ---- Mini-hero por vista: mismo lenguaje visual que Inicio, en formato compacto ---- */
+  .view-hero{
+    position:relative;display:flex;align-items:center;gap:18px;overflow:hidden;isolation:isolate;
+    padding:22px 26px;border-radius:20px;margin-bottom:20px;color:#EAF6F7;
+    background:var(--grad-hero);background-size:220% 220%;animation:heroDrift 20s ease-in-out infinite;
+    box-shadow:0 14px 34px rgba(1,46,63,.22);
+  }
+  .view-hero::before{
+    content:"";position:absolute;inset:0;z-index:0;opacity:.5;
+    background:radial-gradient(circle,rgba(80,214,221,.7),transparent 70%);
+    width:180px;height:180px;top:-70px;right:6%;border-radius:50%;filter:blur(2px);
+    animation:orbitB 15s ease-in-out infinite;
+  }
+  .view-hero--gold::before{background:radial-gradient(circle,rgba(210,187,29,.65),transparent 70%);}
+  .view-hero--turq::before{background:radial-gradient(circle,rgba(80,214,221,.75),transparent 70%);}
+  .view-hero--dark::before{background:radial-gradient(circle,rgba(4,80,120,.7),transparent 70%);}
+  .view-hero-icon{
+    position:relative;z-index:1;flex:0 0 auto;width:52px;height:52px;border-radius:15px;
+    display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);
+  }
+  .view-hero-text{position:relative;z-index:1;min-width:0;}
+  .view-hero-eyebrow{
+    display:inline-flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.4px;color:var(--turquesa);
+    background:rgba(80,214,221,.12);border:1px solid rgba(80,214,221,.35);padding:4px 11px;border-radius:999px;margin-bottom:8px;
+  }
+  .view-hero-eyebrow .dot{width:5px;height:5px;border-radius:50%;background:var(--turquesa);animation:blink 1.6s ease-in-out infinite;}
+  .view-hero-text h2{font-family:var(--font-display);font-size:19px;font-weight:700;margin:0 0 4px;letter-spacing:-.01em;}
+  .view-hero-text p{margin:0;font-size:11.5px;color:#BFE3E6;line-height:1.5;max-width:560px;}
+  body.mobile .view-hero{padding:18px;gap:12px;}
+  body.mobile .view-hero-icon{width:42px;height:42px;font-size:18px;border-radius:12px;}
+  body.mobile .view-hero-text h2{font-size:16px;}
+
+  /* ---- Dock de filtros: más cercano al lenguaje del buscador de referencia ---- */
+  .filters{
+    background:var(--panel);border:1px solid var(--glass-border);border-radius:18px;padding:16px 18px;
+    box-shadow:var(--shadow-soft);position:relative;
+  }
+  .filters::before{
+    content:"";position:absolute;left:18px;right:18px;top:0;height:1px;
+    background:var(--grad-line);opacity:.55;
+  }
+  .filter-group label{
+    display:flex;align-items:center;gap:5px;font-weight:600;color:var(--azul-comp1);opacity:.85;
+  }
+  .filters .filter-group:nth-of-type(1) label::before{content:"📅";font-size:10px;}
+  .filters .filter-group:nth-of-type(2) label::before{content:"🗓";font-size:10px;}
+  .filters .filter-group:nth-of-type(3) label::before{content:"🏢";font-size:10px;}
+  .filters .filter-group:nth-of-type(4) label::before{content:"🏷";font-size:10px;}
+  .filters .filter-group:nth-of-type(5) label::before{content:"👤";font-size:10px;}
+  .admin-toolbar .filter-group label::before{content:"🏷";font-size:10px;}
+  select, input[type=text], input[type=date], input[type=number]{
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  select:focus, input[type=text]:focus, input[type=date]:focus, input[type=number]:focus{
+    outline:none;border-color:var(--azul-comp1);box-shadow:0 0 0 3px rgba(4,80,120,.14);
+  }
+  select{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--azul-comp1) 50%),linear-gradient(135deg,var(--azul-comp1) 50%,transparent 50%);background-position:calc(100% - 16px) center,calc(100% - 11px) center;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:28px;}
+
+  /* ---- Tarjetas / KPI: radio, profundidad y acabado consistentes con Inicio ---- */
+  .card, .kpi, .exec-card{border-radius:16px;}
+  .card{padding:18px 20px;}
+  .card-title{gap:10px;}
+  .card-title::before{
+    content:"";display:inline-block;width:7px;height:7px;border-radius:2px;
+    background:var(--grad-blue);transform:rotate(45deg);flex:0 0 auto;
+  }
+  .kpi{padding:17px 19px 15px;}
+  .kpi-value{font-size:24px;letter-spacing:-.01em;}
+  .exec-card{padding:14px 16px;}
+
+  /* ---- Tablas: cabecera fija, filas con foco y pills con indicador ---- */
+  .table-scroll{border-radius:12px;}
+  table{border-spacing:0;}
+  thead th{position:sticky;top:0;z-index:2;}
+  th{letter-spacing:.5px;}
+  tbody tr{transition:background .15s ease;}
+  tbody tr:hover td{background:rgba(4,80,120,.06) !important;}
+  tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--azul-comp1);}
+  .pill{display:inline-flex;align-items:center;gap:5px;}
+  .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85;}
+
+  /* ---- Botones: mismo sistema de pills en toda la app ---- */
+  .refresh-btn, .pdf-btn, .btn-add-dark, .btn-secondary-outline, .share-btn, .mobile-toggle{
+    letter-spacing:.15px;
+  }
+  .refresh-btn, .pdf-btn, .btn-add-dark{border-radius:999px;}
+  .mobile-toggle::before{content:"📱 ";}
+
+  /* ---- Toolbars de administración y banner de saldo ---- */
+  .admin-toolbar{
+    background:var(--panel);border:1px solid var(--glass-border);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow-soft);
+  }
+  .saldo-banner{
+    border-radius:18px;border:1px solid var(--glass-border);border-left:none;position:relative;overflow:hidden;
+    background:linear-gradient(120deg,rgba(1,46,63,.04),rgba(80,214,221,.06));
+  }
+  .saldo-banner::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--grad-blue);}
+  .saldo-banner > div{padding-left:14px;}
+
+  /* ---- Modales: cabecera con acento e inputs más limpios ---- */
+  .modal-panel{border-radius:20px;border-color:var(--glass-border);box-shadow:0 26px 60px rgba(1,46,63,.28);}
+  .modal-panel h3{font-family:var(--font-display);font-size:18px;}
+  .modal-section-title{border-bottom:2px solid rgba(4,80,120,.12);display:flex;align-items:center;gap:7px;}
+  .modal-section-title::before{content:"";width:6px;height:6px;border-radius:2px;background:var(--grad-blue);transform:rotate(45deg);}
+  .radio-card-grid label{border-radius:10px;transition:border-color .15s ease, background .15s ease;}
+  .radio-card-grid label:has(input:checked){background:rgba(4,80,120,.06);}
 </style>
 </head>
 <body>
@@ -683,25 +799,25 @@
     </div>
     <div class="nav-btns" id="navBtns">
       <div class="nav-indicator" id="navIndicator"></div>
-      <button class="nav-btn" data-view="home">Inicio</button>
-      <button class="nav-btn" data-view="colocacion">Base General / Colocación</button>
-      <button class="nav-btn" data-view="gestion">Gestión Externos</button>
-      <button class="nav-btn" data-view="admin" id="navAdmin" style="display:none;">Panel Admin</button>
-      <button class="nav-btn" data-view="actualizaciones" id="navActualizaciones" style="display:none;">Actualizaciones de Datos</button>
-      <button class="nav-btn" data-view="radicacion" id="navRadicacion" style="display:none;">Radicación</button>
-      <button class="nav-btn" data-view="anticipos" id="navAnticipos" style="display:none;">Anticipos</button>
+      <button class="nav-btn" data-view="home"><span class="nav-ic">⌂</span>Inicio</button>
+      <button class="nav-btn" data-view="colocacion"><span class="nav-ic">◔</span>Base General / Colocación</button>
+      <button class="nav-btn" data-view="gestion"><span class="nav-ic">◎</span>Gestión Externos</button>
+      <button class="nav-btn" data-view="admin" id="navAdmin" style="display:none;"><span class="nav-ic">▤</span>Panel Admin</button>
+      <button class="nav-btn" data-view="actualizaciones" id="navActualizaciones" style="display:none;"><span class="nav-ic">↻</span>Actualizaciones de Datos</button>
+      <button class="nav-btn" data-view="radicacion" id="navRadicacion" style="display:none;"><span class="nav-ic">✎</span>Radicación</button>
+      <button class="nav-btn" data-view="anticipos" id="navAnticipos" style="display:none;"><span class="nav-ic">◈</span>Anticipos</button>
     </div>
     <div class="right-actions">
       <div style="position:relative;">
-        <button class="share-btn" id="btnShare">Compartir link</button>
+        <button class="share-btn" id="btnShare">🔗 Compartir link</button>
         <div id="sharePopup" style="display:none;position:absolute;top:110%;right:0;background:var(--panel);border:1px solid var(--azul-comp1);border-radius:10px;padding:12px 14px;z-index:50;min-width:260px;box-shadow:0 8px 24px rgba(0,0,0,.12);">
           <div style="font-size:10px;color:var(--texto-sec);margin-bottom:6px;">Comparte este enlace:</div>
           <a id="shareLink" href="#" target="_blank" style="display:block;color:var(--azul-comp1);font-size:12px;word-break:break-all;margin-bottom:8px;">-</a>
-          <button id="btnCopyLink" style="background:var(--azul-comp1);color:#FFFFFF;border:none;border-radius:6px;padding:6px 12px;font-family:'Poppins';font-size:11px;font-weight:600;cursor:pointer;">Copiar enlace</button>
+          <button id="btnCopyLink" style="background:var(--azul-comp1);color:#FFFFFF;border:none;border-radius:6px;padding:6px 12px;font-family:'Poppins';font-size:11px;font-weight:600;cursor:pointer;">📋 Copiar enlace</button>
         </div>
       </div>
       <button class="mobile-toggle" id="btnMobile">Ver en móvil</button>
-      <button class="share-btn" id="btnBloquear" style="border-color:#E0555B;color:#E0555B;">Cerrar sesión</button>
+      <button class="share-btn" id="btnBloquear" style="border-color:#E0555B;color:#E0555B;">⏻ Cerrar sesión</button>
     </div>
   </div>
 
@@ -741,6 +857,14 @@
   </div>
 
   <div class="view" id="view-colocacion">
+    <div class="view-hero view-hero--blue">
+      <div class="view-hero-icon">◔</div>
+      <div class="view-hero-text">
+        <div class="view-hero-eyebrow"><span class="dot"></span>Base general</div>
+        <h2>Colocación</h2>
+        <p>Desembolsos, metas y radicación por oficina, línea de crédito y ejecutivo.</p>
+      </div>
+    </div>
     <div class="filters">
       <div class="filter-group"><label>Año</label><select id="fColAnio"></select></div>
       <div class="filter-group"><label>Mes</label><select id="fColMes"></select></div>
@@ -748,9 +872,9 @@
       <div class="filter-group"><label>Línea de crédito</label><select id="fColLinea"></select></div>
       <div class="filter-group"><label>Ejecutivo Final</label><select id="fColEjecutivo"></select></div>
       <div class="toolbar">
-        <button class="refresh-btn" id="btnLimpiarCol">Quitar filtros</button>
-        <button class="refresh-btn" id="btnRefreshCol">Actualizar datos</button>
-        <button class="pdf-btn" id="btnPdfCol">Generar informe PDF</button>
+        <button class="refresh-btn" id="btnLimpiarCol">✕ Quitar filtros</button>
+        <button class="refresh-btn" id="btnRefreshCol">↻ Actualizar datos</button>
+        <button class="pdf-btn" id="btnPdfCol">⬇ Generar informe PDF</button>
         <span class="status" id="statusCol"></span>
       </div>
     </div>
@@ -791,6 +915,14 @@
   </div>
 
   <div class="view" id="view-gestion">
+    <div class="view-hero view-hero--gold">
+      <div class="view-hero-icon">◎</div>
+      <div class="view-hero-text">
+        <div class="view-hero-eyebrow"><span class="dot"></span>Equipo externo</div>
+        <h2>Gestión Externos</h2>
+        <p>Cumplimiento, ranking y estado de base de Leonela Bueno, Alejandro Contento e Ingrid Pedraza.</p>
+      </div>
+    </div>
     <div class="filters">
       <div class="filter-group"><label>Año</label><select id="fGesAnio"></select></div>
       <div class="filter-group"><label>Mes</label><select id="fGesMes"></select></div>
@@ -798,9 +930,9 @@
       <div class="filter-group"><label>Estado (BD)</label><select id="fGesEstado"></select></div>
       <div class="filter-group"><label>Asesor</label><select id="fGesAsesor"></select></div>
       <div class="toolbar">
-        <button class="refresh-btn" id="btnLimpiarGes">Quitar filtros</button>
-        <button class="refresh-btn" id="btnRefreshGes">Actualizar datos</button>
-        <button class="pdf-btn" id="btnPdfGes">Generar informe PDF</button>
+        <button class="refresh-btn" id="btnLimpiarGes">✕ Quitar filtros</button>
+        <button class="refresh-btn" id="btnRefreshGes">↻ Actualizar datos</button>
+        <button class="pdf-btn" id="btnPdfGes">⬇ Generar informe PDF</button>
         <span class="status" id="statusGes"></span>
       </div>
     </div>
@@ -851,6 +983,14 @@
   </div>
 
   <div class="view" id="view-admin">
+    <div class="view-hero view-hero--dark">
+      <div class="view-hero-icon">▤</div>
+      <div class="view-hero-text">
+        <div class="view-hero-eyebrow"><span class="dot"></span>Solo administradores</div>
+        <h2>Panel Admin</h2>
+        <p>Control de sesiones y usuarios que han ingresado al panel.</p>
+      </div>
+    </div>
     <div class="card full-width">
       <div class="card-title">Usuarios que han ingresado <span class="tag">En vivo</span></div>
       <div class="table-scroll full">
@@ -860,6 +1000,14 @@
   </div>
 
   <div class="view" id="view-actualizaciones">
+    <div class="view-hero view-hero--turq">
+      <div class="view-hero-icon">↻</div>
+      <div class="view-hero-text">
+        <div class="view-hero-eyebrow"><span class="dot"></span>Formulario público</div>
+        <h2>Actualizaciones de Datos</h2>
+        <p>Solicitudes de crédito diligenciadas por clientes desde el formulario en línea.</p>
+      </div>
+    </div>
     <div class="card full-width">
       <div class="card-title">Solicitudes de crédito recibidas <span class="tag">En vivo</span></div>
       <div class="table-scroll full">
@@ -869,11 +1017,19 @@
   </div>
 
   <div class="view" id="view-radicacion">
+    <div class="view-hero view-hero--blue">
+      <div class="view-hero-icon">✎</div>
+      <div class="view-hero-text">
+        <div class="view-hero-eyebrow"><span class="dot"></span>Hoja BD</div>
+        <h2>Radicación</h2>
+        <p>Registro, edición e importación de la base de créditos radicados.</p>
+      </div>
+    </div>
     <div class="admin-toolbar">
       <div class="left-group">
         <button class="btn-add-dark" id="btnAgregarRadicacion">+ Agregar</button>
-        <button class="btn-secondary-outline" id="btnDescargarBD">Descargar informe Excel</button>
-        <button class="btn-secondary-outline" id="btnImportarHistoricoBD">Importar base histórica BD</button>
+        <button class="btn-secondary-outline" id="btnDescargarBD">⬇ Descargar informe Excel</button>
+        <button class="btn-secondary-outline" id="btnImportarHistoricoBD">⇪ Importar base histórica BD</button>
       </div>
       <div class="right-group">
         <div class="filter-group"><label>Estado</label><select id="fRadEstado"><option value="TODOS">Todos</option></select></div>
@@ -900,6 +1056,14 @@
   </div>
 
   <div class="view" id="view-anticipos">
+    <div class="view-hero view-hero--gold">
+      <div class="view-hero-icon">◈</div>
+      <div class="view-hero-text">
+        <div class="view-hero-eyebrow"><span class="dot"></span>Caja menor</div>
+        <h2>Anticipos</h2>
+        <p>Control de egresos, saldos y legalización de anticipos por asesor.</p>
+      </div>
+    </div>
     <div class="admin-toolbar">
       <div class="left-group">
         <button class="btn-add-dark" id="btnAgregarAnticipo">+ Agregar</button>
@@ -1010,7 +1174,7 @@
       <p style="font-size:11.5px;color:var(--texto-sec);margin:0 0 14px;">Comparte este enlace con el cliente. Al abrirlo, solo verá el formulario — sin acceso al resto del panel.</p>
       <a id="formLinkA" href="#" target="_blank" style="display:block;color:var(--azul-comp1);font-size:12px;word-break:break-all;margin-bottom:14px;background:var(--panel-2);padding:10px;border-radius:7px;">-</a>
       <div style="display:flex;gap:8px;">
-        <button id="btnCopyFormLink" class="refresh-btn" style="flex:1;">Copiar enlace</button>
+        <button id="btnCopyFormLink" class="refresh-btn" style="flex:1;">📋 Copiar enlace</button>
         <button id="btnCerrarFormLinkModal" style="flex:0 0 auto;background:transparent;border:1px solid var(--borde);color:var(--texto-sec);border-radius:8px;padding:10px 16px;font-family:'Poppins';cursor:pointer;">Cerrar</button>
       </div>
     </div>
@@ -1510,8 +1674,8 @@ function escucharAnticiposFirestore(){
     let saldo = 0, totalEgresos = 0;
     rows.forEach(function(r){ saldo -= Number(r['EGRESO']||0); totalEgresos += Number(r['EGRESO']||0); r._saldoCorrido = saldo; });
     window.ANTICIPOS_CACHE = rows;
-    document.getElementById('saldoActualAnticipos').textContent = '$'+saldo.toLocaleString('es-CO');
-    document.getElementById('totalEgresosAnticipos').textContent = '$'+totalEgresos.toLocaleString('es-CO');
+    animateCount(document.getElementById('saldoActualAnticipos'), saldo, '$');
+    animateCount(document.getElementById('totalEgresosAnticipos'), totalEgresos, '$');
     renderTablaAnticipos();
     if(st){ st.textContent = 'Datos al día · ' + new Date().toLocaleTimeString('es-CO'); st.className='status ok'; }
   }, function(err){
@@ -2211,9 +2375,31 @@ function fillSelect(sel, values, withTodos){
   if(withTodos){ const o=document.createElement('option'); o.value='TODOS'; o.textContent='Todos'; sel.appendChild(o); }
   values.forEach(function(v){ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
 }
-function kpiCard(label, value, meta, colorIdx){
+function kpiCard(label, value, meta, colorIdx, rawTarget, fmtType){
   const color = CORP_COLORS[colorIdx % CORP_COLORS.length];
-  return '<div class="kpi" style="border-top-color:'+color+';"><div class="kpi-label">'+label+'</div><div class="kpi-value" style="color:'+color+';">'+value+'</div>'+(meta?'<div class="kpi-meta">'+meta+'</div>':'')+'</div>';
+  const animAttrs = (rawTarget!==undefined) ? ' data-target="'+rawTarget+'" data-fmt="'+fmtType+'"' : '';
+  const initial = (rawTarget!==undefined) ? kpiFormat(0, fmtType) : value;
+  return '<div class="kpi" style="border-top-color:'+color+';"><div class="kpi-label">'+label+'</div><div class="kpi-value"'+animAttrs+' style="color:'+color+';">'+initial+'</div>'+(meta?'<div class="kpi-meta">'+meta+'</div>':'')+'</div>';
+}
+function kpiFormat(v, type){
+  if(type==='m') return fmtM(v);
+  if(type==='pct') return fmtPct(v);
+  return Math.round(v).toLocaleString('es-CO');
+}
+function animateKpiValues(containerId){
+  const nodes = document.querySelectorAll('#'+containerId+' [data-target][data-fmt]');
+  nodes.forEach(function(el){
+    const target = Number(el.dataset.target)||0;
+    const type = el.dataset.fmt;
+    const dur = 900, t0 = performance.now();
+    function step(t){
+      const p = Math.min(1,(t-t0)/dur);
+      const eased = 1-Math.pow(1-p,3);
+      el.textContent = kpiFormat(target*eased, type);
+      if(p<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
 }
 let charts = {};
 function destroyChart(key){ if(charts[key]){ charts[key].destroy(); delete charts[key]; } }
@@ -2475,10 +2661,11 @@ function renderColocacion(){
   const pctOficina = metaOficina ? valorOficina/metaOficina : 0;
 
   document.getElementById('kpiCol').innerHTML =
-    kpiCard('Total desembolsado', fmtM(totalDesembolsado), 'Meta general: '+fmtM(metaGeneral), 0) +
-    kpiCard('# Créditos radicados', String(numCreditos), (oficinaSel==='TODOS'?'Todas las oficinas':etiquetaOficina), 1) +
-    kpiCard('% Cumplimiento meta global', fmtPct(pctCumplGeneral), '', 2) +
-    kpiCard('% Cumplimiento — '+etiquetaOficina, fmtPct(pctOficina), fmtM(valorOficina)+' / '+fmtM(metaOficina), 3);
+    kpiCard('Total desembolsado', fmtM(totalDesembolsado), 'Meta general: '+fmtM(metaGeneral), 0, totalDesembolsado, 'm') +
+    kpiCard('# Créditos radicados', String(numCreditos), (oficinaSel==='TODOS'?'Todas las oficinas':etiquetaOficina), 1, numCreditos, 'int') +
+    kpiCard('% Cumplimiento meta global', fmtPct(pctCumplGeneral), '', 2, pctCumplGeneral, 'pct') +
+    kpiCard('% Cumplimiento — '+etiquetaOficina, fmtPct(pctOficina), fmtM(valorOficina)+' / '+fmtM(metaOficina), 3, pctOficina, 'pct');
+  animateKpiValues('kpiCol');
 
   document.getElementById('gaugeColTag').textContent = etiquetaOficina;
 
@@ -2665,10 +2852,11 @@ function renderGestion(){
   const pctExt = metaExt? valorExt/metaExt : 0;
 
   document.getElementById('kpiGes').innerHTML =
-    kpiCard('Total desembolsado (Externos)', fmtM(totalDesembolsado), 'Meta externos: '+fmtM(metaExt), 0) +
-    kpiCard('# Créditos radicados', String(numCreditos), '', 2) +
-    kpiCard('% Cumplimiento meta global', fmtPct(pctCumplGeneral), '', 3) +
-    kpiCard('% Cumplimiento externos', fmtPct(pctExt), fmtM(valorExt)+' / '+fmtM(metaExt), 1);
+    kpiCard('Total desembolsado (Externos)', fmtM(totalDesembolsado), 'Meta externos: '+fmtM(metaExt), 0, totalDesembolsado, 'm') +
+    kpiCard('# Créditos radicados', String(numCreditos), '', 2, numCreditos, 'int') +
+    kpiCard('% Cumplimiento meta global', fmtPct(pctCumplGeneral), '', 3, pctCumplGeneral, 'pct') +
+    kpiCard('% Cumplimiento externos', fmtPct(pctExt), fmtM(valorExt)+' / '+fmtM(metaExt), 1, pctExt, 'pct');
+  animateKpiValues('kpiGes');
 
   const metaEjecutivo = Number(DATA.metas['META COLOCACION EJECUTIVO']||0);
   const colores = {'Leonela Bueno':'#0E8A93','Alejandro Contento':'#D2BB1D','Ingrid Pedraza':'#045078'};
@@ -2690,9 +2878,10 @@ function renderGestion(){
       '<div><div class="exec-name">'+e.nombre+' <span style="color:var(--texto-sec);font-weight:400;">('+apellidos[e.nombre]+')</span></div><div class="exec-role">Ejecutivo externo</div></div>'+
       '<span class="rank-badge '+rankClass+'">#'+(i+1)+'</span></div>'+
       '<div class="gauge-wrap"><canvas id="gaugeExec'+i+'"></canvas></div>'+
-      '<div class="exec-stats"><div><b>'+fmtM(e.valor)+'</b>Desembolsado</div><div><b>'+e.creditos+'</b>Créditos</div><div><b>'+fmtPct(e.pctDesembolsoExternos)+'</b>% Desembolso</div></div>'+
+      '<div class="exec-stats"><div><b data-target="'+e.valor+'" data-fmt="m">'+kpiFormat(0,'m')+'</b>Desembolsado</div><div><b data-target="'+e.creditos+'" data-fmt="int">'+kpiFormat(0,'int')+'</b>Créditos</div><div><b data-target="'+e.pctDesembolsoExternos+'" data-fmt="pct">'+kpiFormat(0,'pct')+'</b>% Desembolso</div></div>'+
       '<div class="kpi-meta" style="margin-top:4px;text-align:center;font-size:9px;">Meta individual: '+fmtPct(e.cumplIndividual)+'</div></div>';
   }).join('');
+  animateKpiValues('execRow');
 
   stats.forEach(function(e,i){
     destroyChart('gaugeExec'+i);
