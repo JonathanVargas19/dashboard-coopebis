@@ -170,7 +170,7 @@
   .home-card.gold .go{color:#8a7710;}
   .home-footer-note{text-align:center;color:var(--texto-sec);font-size:10.5px;margin-top:40px;}
 
-  .filters{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap;}
+  .filters{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(80,214,221,.09),rgba(210,187,29,.07));border:1px solid rgba(1,46,63,.08);border-radius:14px;padding:14px 16px;}
   select, input[type=text]{
     background:var(--panel-2);color:var(--texto);border:1px solid var(--borde);
     border-radius:8px;padding:9px 12px;font-family:'Poppins';font-size:12px;
@@ -196,8 +196,15 @@
   .kpi-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px;}
   .kpi{background:var(--panel);border:1px solid rgba(1,46,63,.08);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;transition:box-shadow .25s var(--ease-out),transform .25s var(--ease-out);min-width:0;box-shadow:var(--shadow-soft);}
   .kpi::before{content:"";position:absolute;top:0;left:0;width:100%;height:4px;background:var(--grad-blue);background-size:220% 100%;transition:background-position .6s var(--ease-out);background-position:0 0;}
+  .kpi::after{content:"";position:absolute;top:-30px;right:-30px;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(80,214,221,.16),transparent 70%);pointer-events:none;}
   .kpi:hover::before{background-position:100% 0;}
   .kpi:hover{box-shadow:0 10px 26px rgba(4,80,120,.18);transform:translateY(-3px);}
+  .kpi:nth-child(4n+2)::before{background:var(--grad-gold);}
+  .kpi:nth-child(4n+2):hover{box-shadow:0 10px 26px rgba(210,187,29,.28);}
+  .kpi:nth-child(4n+3)::before{background:linear-gradient(90deg,var(--turquesa),var(--azul-comp1));}
+  .kpi:nth-child(4n+3):hover{box-shadow:0 10px 26px rgba(80,214,221,.28);}
+  .kpi:nth-child(4n+4)::before{background:linear-gradient(90deg,var(--azul-secundario),var(--dorado));}
+  .kpi:nth-child(4n+4):hover{box-shadow:0 10px 26px rgba(41,119,128,.28);}
   .kpi-label{font-size:10.5px;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
   .kpi-value{font-family:var(--font-display);font-size:23px;font-weight:700;}
   .kpi-meta{font-size:10px;color:var(--texto-sec);margin-top:4px;}
@@ -208,11 +215,15 @@
   .card::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:var(--grad-line);background-size:220% 100%;background-position:0 0;transition:background-position .6s var(--ease-out);}
   .card:hover::before{background-position:100% 0;}
   .card:hover{box-shadow:0 12px 30px rgba(1,46,63,.14);transform:translateY(-3px);}
+  .card:nth-of-type(3n+2)::before{background:var(--grad-blue);}
+  .card:nth-of-type(3n+2):hover{box-shadow:0 12px 30px rgba(4,80,120,.2);}
+  .card:nth-of-type(3n+3)::before{background:linear-gradient(90deg,var(--dorado),var(--azul-secundario));}
+  .card:nth-of-type(3n+3):hover{box-shadow:0 12px 30px rgba(210,187,29,.24);}
   .card-title{font-family:var(--font-display);font-size:13px;font-weight:600;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
-  .card-title span.tag{font-size:10px;background:var(--panel-2);color:var(--texto-sec);padding:3px 8px;border-radius:6px;font-weight:400;}
+  .card-title span.tag{font-size:10px;background:linear-gradient(135deg,rgba(4,80,120,.1),rgba(80,214,221,.16));color:var(--azul-comp1);padding:4px 10px;border-radius:20px;font-weight:600;border:1px solid rgba(4,80,120,.12);}
 
   table{width:100%;border-collapse:collapse;font-size:11.5px;}
-  th{text-align:left;color:#FFFFFF;background:var(--azul-comp1);padding:9px 10px;font-weight:600;font-size:10.5px;text-transform:uppercase;}
+  th{text-align:left;color:#FFFFFF;background:var(--grad-blue);padding:9px 10px;font-weight:600;font-size:10.5px;text-transform:uppercase;}
   th:first-child{border-radius:6px 0 0 6px;} th:last-child{border-radius:0 6px 6px 0;}
   td{padding:8px 10px;border-bottom:1px solid #D8DEE2;}
   tr:nth-child(even) td{background:var(--panel-2);}
@@ -227,7 +238,10 @@
   .search-box input{flex:1;min-width:160px;}
 
   .exec-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:16px;}
-  .exec-card{background:var(--panel);border:1px solid rgba(1,46,63,.08);border-radius:12px;padding:12px 14px;transition:box-shadow .25s var(--ease-out),transform .25s var(--ease-out);overflow:hidden;min-width:0;box-shadow:var(--shadow-soft);}
+  .exec-card{background:var(--panel);border:1px solid rgba(1,46,63,.08);border-radius:12px;padding:12px 14px;transition:box-shadow .25s var(--ease-out),transform .25s var(--ease-out);overflow:hidden;min-width:0;box-shadow:var(--shadow-soft);position:relative;}
+  .exec-card::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,var(--turquesa),var(--azul-comp1));}
+  .exec-card:nth-child(2)::before{background:var(--grad-gold);}
+  .exec-card:nth-child(3)::before{background:linear-gradient(90deg,var(--azul-secundario),var(--dorado));}
   .exec-card:hover{box-shadow:0 10px 26px rgba(1,46,63,.16);transform:translateY(-3px) scale(1.01);}
   .exec-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
   .avatar{width:26px;height:26px;flex:0 0 26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
@@ -2127,11 +2141,9 @@ try{
   Chart.defaults.font.size = 12.5;
   Chart.defaults.color="#5C6B73";
   Chart.defaults.devicePixelRatio = 2.5;
-  Chart.defaults.animation = { duration: 900, easing: 'easeOutQuart' };
-  Chart.defaults.animations = Object.assign({}, Chart.defaults.animations, {
-    numbers: { type:'number', duration:900, easing:'easeOutQuart' }
-  });
-  Chart.defaults.transitions.active.animation.duration = 350;
+  Chart.defaults.animation = Chart.defaults.animation || {};
+  Chart.defaults.animation.duration = 900;
+  Chart.defaults.animation.easing = 'easeOutQuart';
   Chart.register(ChartDataLabels);
   Chart.defaults.set('plugins.datalabels', { display:true, color:'#0B2530', font:{ family:"'Poppins'", size:10, weight:'600' } });
 }catch(e){ console.error('Chart.js no cargó correctamente:', e); }
