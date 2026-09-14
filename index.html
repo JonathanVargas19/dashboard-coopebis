@@ -3006,15 +3006,11 @@ function renderGestion(){
   const numCreditos = rowsColoc.length;
   const mesSelGes = document.getElementById('fGesMes').value;
   const metaRowGes = getMetaRow(mesSelGes);
-  const desMetaExt = DATA.desMetas.find(function(r){return r['OFICINA']==='EXTERNOS';});
-  const valorExt = desMetaExt? Number(desMetaExt['VALOR DESEMBOLSADO']||0): totalDesembolsado;
-  const metaExt = desMetaExt? Number(desMetaExt['META']||0): 0;
   const metaEjecutivoGes = Number(metaRowGes['META COLOCACION EJECUTIVO']||0);
-  const pctExtHoja = Number(metaRowGes['%CUMPLIMIENTO EXTERNOS']||0);
   const pctExt = metaEjecutivoGes ? totalDesembolsado/metaEjecutivoGes : 0;
 
   document.getElementById('kpiGes').innerHTML =
-    kpiCard('Total desembolsado (Externos)', fmtM(totalDesembolsado), 'Meta externos: '+fmtM(metaExt), 0, totalDesembolsado, 'm') +
+    kpiCard('Total desembolsado (Externos)', fmtM(totalDesembolsado), 'Meta externos: '+fmtM(metaEjecutivoGes), 0, totalDesembolsado, 'm') +
     kpiCard('# Créditos radicados', String(numCreditos), '', 2, numCreditos, 'int') +
     kpiCard('% Cumplimiento externos', fmtPct(pctExt), fmtM(totalDesembolsado)+' / '+fmtM(metaEjecutivoGes), 1, pctExt, 'pct');
   animateKpiValues('kpiGes');
@@ -3026,7 +3022,7 @@ function renderGestion(){
     const rc = rowsColoc.filter(function(r){return promotorDisplay(r['Promotor'])===nombre;});
     const rb = rowsBD.filter(function(r){return asesorDisplayBD(r['ASESOR'])===nombre;});
     const valor = rc.reduce(function(s,r){return s+Number(r['Valor Desembolsado']||0);},0);
-    const pctDesembolsoExternos = metaExt? valor/metaExt : 0;
+    const pctDesembolsoExternos = metaEjecutivoGes? valor/metaEjecutivoGes : 0;
     const cumplIndividual = metaEjecutivo? valor/metaEjecutivo : 0;
     return { nombre:nombre, valor:valor, creditos: rc.length, pctDesembolsoExternos:pctDesembolsoExternos, cumplIndividual:cumplIndividual };
   }).sort(function(a,b){return b.valor-a.valor;});
