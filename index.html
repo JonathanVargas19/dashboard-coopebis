@@ -12,6 +12,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <style>
@@ -233,6 +234,13 @@
   }
   .pdf-btn:hover{box-shadow:0 6px 18px rgba(180,159,22,.5);background-position:100% 0;transform:translateY(-1px);}
   .pdf-btn:active{transform:translateY(0) scale(.97);}
+  .pptx-btn{
+    background:var(--grad-blue);background-size:160% 160%;color:#FFFFFF;border:none;border-radius:9px;
+    padding:10px 16px;font-family:'Poppins';font-weight:700;font-size:12px;cursor:pointer;transition:box-shadow .2s ease,background-position .5s ease,transform .15s ease;
+  }
+  .pptx-btn:hover{box-shadow:0 6px 18px rgba(3,61,92,.45);background-position:100% 0;transform:translateY(-1px);}
+  .pptx-btn:active{transform:translateY(0) scale(.97);}
+  .pptx-btn:disabled,.pdf-btn:disabled{opacity:.6;cursor:wait;transform:none;}
   .status{font-size:10px;color:var(--texto-sec);}
   .status.ok{color:var(--verde);} .status.err{color:var(--rojo);}
 
@@ -1001,6 +1009,7 @@
         <button class="refresh-btn" id="btnLimpiarCol">✕ Quitar filtros</button>
         <button class="refresh-btn" id="btnRefreshCol">↻ Actualizar datos</button>
         <button class="pdf-btn" id="btnPdfCol">⬇ Generar informe PDF</button>
+        <button class="pptx-btn" id="btnPptxCol">◧ Generar PowerPoint</button>
         <span class="status" id="statusCol"></span>
       </div>
     </div>
@@ -1059,6 +1068,7 @@
         <button class="refresh-btn" id="btnLimpiarGes">✕ Quitar filtros</button>
         <button class="refresh-btn" id="btnRefreshGes">↻ Actualizar datos</button>
         <button class="pdf-btn" id="btnPdfGes">⬇ Generar informe PDF</button>
+        <button class="pptx-btn" id="btnPptxGes">◧ Generar PowerPoint</button>
         <span class="status" id="statusGes"></span>
       </div>
     </div>
@@ -1489,6 +1499,7 @@ function actualizarFiltrosGestionDesdeBD(){
     document.getElementById('searchBD').addEventListener('input', renderGestion);
     document.getElementById('btnRefreshGes').addEventListener('click', cargarDatos);
     document.getElementById('btnPdfGes').addEventListener('click', generarPdfGestion);
+    document.getElementById('btnPptxGes').addEventListener('click', function(){ generarPptxGestion(this); });
     document.getElementById('btnLimpiarGes').addEventListener('click', function(){
       document.getElementById('fGesAnio').value = 'TODOS';
       document.getElementById('fGesMes').value = 'TODOS';
@@ -2773,6 +2784,7 @@ function initColFilters(){
   document.getElementById('searchCol').addEventListener('input', renderColocacion);
   document.getElementById('btnRefreshCol').addEventListener('click', cargarDatos);
   document.getElementById('btnPdfCol').addEventListener('click', generarPdfColocacion);
+  document.getElementById('btnPptxCol').addEventListener('click', function(){ generarPptxColocacion(this); });
   document.getElementById('btnLimpiarCol').addEventListener('click', function(){
     document.getElementById('fColAnio').value = 'TODOS';
     document.getElementById('fColMes').value = 'TODOS';
@@ -3434,6 +3446,301 @@ async function generarPdfGestion(){
 
   pdfFooter(doc, pageLabel);
   doc.save('Estado_Situacion_Gestion_Externos_COOPEBIS.pdf');
+}
+
+/* ================= PPTX (PowerPoint) — usa como guía de marca la plantilla oficial de COOPEBIS: mismos colores, tipografía Poppins y logo ================= */
+const PPTX_C = { primario:'011F2B', secundario:'1E5960', comp1:'033D5C', turquesa:'2FB9C1', dorado:'B49F16', blanco:'FFFFFF', texto:'1F2937', textoSec:'5B6B72' };
+const PPTX_KPI_BG   = [PPTX_C.turquesa, PPTX_C.dorado, PPTX_C.comp1, PPTX_C.secundario];
+const PPTX_KPI_TXT  = [PPTX_C.primario, PPTX_C.primario, PPTX_C.blanco, PPTX_C.blanco];
+const PPTX_PAGE_W = 13.333, PPTX_PAGE_H = 7.5, PPTX_MARGIN = 0.45, PPTX_CONTENT_W = PPTX_PAGE_W - PPTX_MARGIN*2;
+
+function pptxSetBtnLoading(btn, loading){
+  if(!btn) return;
+  if(loading){ if(!btn.dataset.label) btn.dataset.label = btn.textContent; btn.textContent = '⏳ Generando…'; btn.disabled = true; }
+  else { btn.textContent = btn.dataset.label || '◧ Generar PowerPoint'; btn.disabled = false; }
+}
+
+function pptxDecorLineas(slide, pres){
+  const lineas = [
+    { w:6.6, h:0.32, x:8.6, y:5.55, rot:-24, color:PPTX_C.comp1,      alpha:45 },
+    { w:7.8, h:0.24, x:7.5, y:6.05, rot:-24, color:PPTX_C.turquesa,   alpha:30 },
+    { w:6.0, h:0.20, x:9.3, y:6.5,  rot:-24, color:PPTX_C.dorado,     alpha:35 },
+    { w:9.4, h:0.16, x:6.4, y:6.95, rot:-24, color:PPTX_C.secundario, alpha:35 }
+  ];
+  lineas.forEach(function(l){
+    slide.addShape(pres.ShapeType.rect, { x:l.x, y:l.y, w:l.w, h:l.h, rotate:l.rot, fill:{ color:l.color, transparency:l.alpha }, line:{ type:'none' } });
+  });
+}
+
+function pptxCoverSlide(pres, opts){
+  const slide = pres.addSlide();
+  slide.background = { color: PPTX_C.primario };
+  pptxDecorLineas(slide, pres);
+  if(LOGO_B64) slide.addImage({ data: LOGO_B64, x:0.55, y:0.5, w:2.35, h:0.86 });
+  slide.addText((opts.eyebrow||'').toUpperCase(), { isTextBox:true, x:0.6, y:2.5, w:11.8, h:0.35, fontFace:'Poppins', fontSize:12, bold:true, color:PPTX_C.turquesa, charSpacing:2 });
+  slide.addText(opts.titulo, { isTextBox:true, x:0.6, y:2.85, w:12.1, h:1.3, fontFace:'Poppins', fontSize:32, bold:true, color:PPTX_C.blanco });
+  slide.addText(opts.subtitulo||'', { isTextBox:true, x:0.6, y:4.05, w:11.8, h:0.6, fontFace:'Poppins', fontSize:13, color:'D6E4E6' });
+  slide.addShape(pres.ShapeType.line, { x:0.6, y:4.78, w:2.6, h:0, line:{ color:PPTX_C.dorado, width:2.2 } });
+  slide.addText('Generado: ' + new Date().toLocaleString('es-CO'), { isTextBox:true, x:0.6, y:4.92, w:8, h:0.35, fontFace:'Poppins', fontSize:10, color:'9FB4BA' });
+  slide.addText('WWW.COOPEBIS.COOP', { isTextBox:true, x:0.6, y:6.75, w:7, h:0.4, fontFace:'Poppins', fontSize:12, bold:true, color:PPTX_C.dorado, charSpacing:1.5 });
+  slide.addText('COOPEBIS · Cooperativa para el Bienestar Social', { isTextBox:true, x:0.6, y:7.1, w:9, h:0.3, fontFace:'Poppins', fontSize:9, color:'7C9096' });
+  return slide;
+}
+
+function pptxClosingSlide(pres, pageLabel){
+  const slide = pres.addSlide();
+  slide.background = { color: PPTX_C.primario };
+  pptxDecorLineas(slide, pres);
+  if(LOGO_B64) slide.addImage({ data: LOGO_B64, x:4.9, y:2.5, w:3.5, h:1.28 });
+  slide.addText('WWW.COOPEBIS.COOP', { isTextBox:true, x:0, y:4.15, w:PPTX_PAGE_W, h:0.5, align:'center', fontFace:'Poppins', fontSize:16, bold:true, color:PPTX_C.dorado, charSpacing:2 });
+  slide.addText('★★★★★   Síguenos como @coopebis', { isTextBox:true, x:0, y:4.68, w:PPTX_PAGE_W, h:0.4, align:'center', fontFace:'Poppins', fontSize:11, color:PPTX_C.blanco });
+  slide.addText('Informe generado automáticamente · ' + new Date().toLocaleString('es-CO') + (pageLabel? (' · ' + pageLabel):''), { isTextBox:true, x:0, y:6.95, w:PPTX_PAGE_W, h:0.35, align:'center', fontFace:'Poppins', fontSize:9, color:'7C9096' });
+}
+
+function pptxFooter(slide, pres, pageLabel){
+  slide.addShape(pres.ShapeType.line, { x:PPTX_MARGIN, y:7.05, w:PPTX_CONTENT_W, h:0, line:{ color:'DCDCDC', width:0.75 } });
+  slide.addText('COOPEBIS · Cooperativa para el Bienestar Social' + (pageLabel? (' · ' + pageLabel):''), { isTextBox:true, x:PPTX_MARGIN, y:7.1, w:9.4, h:0.3, fontFace:'Poppins', fontSize:8, color:'8C8C8C' });
+  slide.addText('www.coopebis.coop', { isTextBox:true, x:PPTX_PAGE_W-PPTX_MARGIN-2.7, y:7.1, w:2.7, h:0.3, align:'right', fontFace:'Poppins', fontSize:8, color:'8C8C8C' });
+}
+
+function pptxHeaderSlide(pres, opts){
+  const slide = pres.addSlide();
+  slide.background = { color: PPTX_C.blanco };
+  if(LOGO_CHIP) slide.addImage({ data: LOGO_CHIP, x:PPTX_MARGIN, y:0.32, w:1.55, h:0.73 });
+  slide.addText(opts.titulo, { isTextBox:true, x:2.25, y:0.34, w:10.6, h:0.5, fontFace:'Poppins', fontSize:18, bold:true, color:PPTX_C.primario });
+  slide.addText(opts.subtitulo||'', { isTextBox:true, x:2.25, y:0.86, w:10.6, h:0.42, fontFace:'Poppins', fontSize:10, color:PPTX_C.secundario });
+  slide.addShape(pres.ShapeType.line, { x:PPTX_MARGIN, y:1.34, w:PPTX_CONTENT_W, h:0, line:{ color:PPTX_C.turquesa, width:2 } });
+  slide.addShape(pres.ShapeType.line, { x:PPTX_MARGIN, y:1.4, w:PPTX_CONTENT_W, h:0, line:{ color:PPTX_C.dorado, width:1 } });
+  pptxFooter(slide, pres, opts.pageLabel);
+  return slide;
+}
+
+function pptxSectionTitle(slide, pres, y, texto, color){
+  slide.addShape(pres.ShapeType.rect, { x:PPTX_MARGIN, y:y, w:PPTX_CONTENT_W, h:0.4, fill:{ color:color }, line:{ type:'none' } });
+  slide.addText(texto, { isTextBox:true, x:PPTX_MARGIN+0.18, y:y, w:PPTX_CONTENT_W-0.36, h:0.4, fontFace:'Poppins', fontSize:12.5, bold:true, color:PPTX_C.blanco, valign:'middle' });
+  return y + 0.5;
+}
+
+function pptxKpiRow(slide, pres, y, items){
+  const gap = 0.2, boxH = 1.05, boxW = (PPTX_CONTENT_W - gap*(items.length-1)) / items.length;
+  items.forEach(function(it, i){
+    const x = PPTX_MARGIN + i*(boxW+gap);
+    slide.addShape(pres.ShapeType.roundRect, { x:x, y:y, w:boxW, h:boxH, rectRadius:0.08, fill:{ color:it.bg }, line:{ type:'none' } });
+    slide.addText(it.value, { isTextBox:true, x:x+0.14, y:y+0.12, w:boxW-0.28, h:0.48, fontFace:'Poppins', fontSize:16, bold:true, color:it.txt });
+    slide.addText(it.label, { isTextBox:true, x:x+0.14, y:y+0.6, w:boxW-0.28, h:0.4, fontFace:'Poppins', fontSize:8.5, color:it.txt, valign:'top' });
+  });
+  return y + boxH + 0.25;
+}
+
+function pptxParagraph(slide, y, texto){
+  slide.addText(texto, { isTextBox:true, x:PPTX_MARGIN, y:y, w:PPTX_CONTENT_W, h:1.3, fontFace:'Poppins', fontSize:11, color:PPTX_C.texto, valign:'top', lineSpacingMultiple:1.3 });
+  return y + 1.35;
+}
+
+function pptxChartImageBlock(slide, y, chartKey, caption, maxH){
+  if(!charts[chartKey]) return y;
+  maxH = maxH || 4.2;
+  const canvas = charts[chartKey].canvas;
+  let w = PPTX_CONTENT_W, h = w * (canvas.height/canvas.width);
+  if(h > maxH){ h = maxH; w = maxH * (canvas.width/canvas.height); }
+  const x = PPTX_MARGIN + (PPTX_CONTENT_W - w)/2;
+  try{
+    const img = charts[chartKey].toBase64Image('image/png', 1.0);
+    slide.addImage({ data: img, x:x, y:y, w:w, h:h });
+  }catch(e){}
+  y += h + 0.12;
+  if(caption){
+    slide.addText(caption, { isTextBox:true, x:PPTX_MARGIN, y:y, w:PPTX_CONTENT_W, h:0.35, fontFace:'Poppins', fontSize:9, italic:true, color:PPTX_C.textoSec });
+    y += 0.4;
+  }
+  return y;
+}
+
+function pptxTable(slide, y, headers, rows, colWidths){
+  const headerRow = headers.map(function(h){
+    return { text:h, options:{ fill:{ color:PPTX_C.primario }, color:PPTX_C.blanco, bold:true, fontFace:'Poppins', fontSize:9, align:'left', valign:'middle' } };
+  });
+  const bodyRows = rows.map(function(r, i){
+    return r.map(function(c){
+      return { text:String(c==null?'':c), options:{ fill:{ color: i%2===0 ? PPTX_C.blanco : 'F1F5F6' }, color:PPTX_C.texto, fontFace:'Poppins', fontSize:8.5, align:'left', valign:'middle' } };
+    });
+  });
+  slide.addTable([headerRow].concat(bodyRows), { x:PPTX_MARGIN, y:y, w:PPTX_CONTENT_W, colW:colWidths, border:{ type:'solid', color:'E2E8EC', pt:0.5 }, autoPage:false, margin:0.05 });
+}
+
+async function generarPptxColocacion(btn){
+  pptxSetBtnLoading(btn, true);
+  try{
+    await ensureLogoChip();
+    const pres = new PptxGenJS();
+    pres.layout = 'LAYOUT_WIDE';
+    pres.author = 'COOPEBIS'; pres.company = 'COOPEBIS';
+    pres.title = 'Informe Comercial · Base General / Colocación';
+
+    const oficinaSel = document.getElementById('fColOficina').value;
+    const anio = document.getElementById('fColAnio').value;
+    const mes = document.getElementById('fColMes').value;
+    const subtitulo = 'Filtros aplicados: Año ' + anio + ' · Mes ' + mes + ' · Oficina ' + (oficinaSel==='TODOS' ? 'Todas' : titleCase(oficinaSel));
+    const pageLabel = 'Base General / Colocación';
+
+    pptxCoverSlide(pres, { eyebrow:'Base general · Colocación', titulo:'Informe Comercial de Colocación', subtitulo:subtitulo });
+
+    let slide = pptxHeaderSlide(pres, { titulo:'Resumen ejecutivo', subtitulo:subtitulo, pageLabel:pageLabel });
+    let y = 1.62;
+    const kpiEls = Array.from(document.querySelectorAll('#kpiCol .kpi'));
+    const kpiItems = kpiEls.map(function(el,i){ return { label: el.querySelector('.kpi-label').textContent, value: el.querySelector('.kpi-value').textContent, bg: PPTX_KPI_BG[i%4], txt: PPTX_KPI_TXT[i%4] }; });
+    y = pptxKpiRow(slide, pres, y, kpiItems);
+    const narrativa = 'Este informe resume el comportamiento de colocación de COOPEBIS a partir de la hoja COLOCACION, aplicando los filtros seleccionados en el momento de generación. Se incluye el desembolso total, el número de créditos radicados, el cumplimiento frente a la meta general definida por la organización y el detalle de desembolso por oficina (Principal, Centro y Externos), por promotor y su evolución en el tiempo.';
+    y = pptxParagraph(slide, y, narrativa);
+
+    slide = pptxHeaderSlide(pres, { titulo:'Desembolso por promotor', subtitulo:subtitulo, pageLabel:pageLabel });
+    y = 1.62; y = pptxSectionTitle(slide, pres, y, 'Desembolso por promotor', PPTX_C.comp1);
+    y = pptxChartImageBlock(slide, y, 'barPromotorCol', 'Desembolso total (en millones de pesos) acumulado por cada promotor, según los filtros aplicados.');
+
+    slide = pptxHeaderSlide(pres, { titulo:'Desembolso por oficina', subtitulo:subtitulo, pageLabel:pageLabel });
+    y = 1.62; y = pptxSectionTitle(slide, pres, y, 'Desembolso por oficina', PPTX_C.secundario);
+    y = pptxChartImageBlock(slide, y, 'pieOficina', 'Distribución porcentual del desembolso entre Oficina Principal, Oficina Centro y Externos.');
+
+    slide = pptxHeaderSlide(pres, { titulo:'Tendencia mensual por ejecutivo', subtitulo:subtitulo, pageLabel:pageLabel });
+    y = 1.62; y = pptxSectionTitle(slide, pres, y, 'Radicado mensual por ejecutivo', PPTX_C.dorado);
+    y = pptxChartImageBlock(slide, y, 'lineCol', 'Evolución mes a mes del valor desembolsado, discriminado por promotor.');
+
+    slide = pptxHeaderSlide(pres, { titulo:'Desembolso día a día', subtitulo:subtitulo, pageLabel:pageLabel });
+    y = 1.62; y = pptxSectionTitle(slide, pres, y, 'Desembolso día a día', PPTX_C.turquesa);
+    y = pptxChartImageBlock(slide, y, 'dailyCol', 'Serie diaria del valor total desembolsado en el periodo filtrado.');
+
+    const q = (document.getElementById('searchCol').value||'').toString().toLowerCase();
+    const rowsFiltradas = filtrarColocacion().filter(function(r){ return !q || String(r['Asociado']||'').toLowerCase().indexOf(q)>-1 || String(r['Identificación']||'').indexOf(q)>-1; });
+    if(rowsFiltradas.length){
+      const top = rowsFiltradas.slice().sort(function(a,b){ return Number(b['Valor Desembolsado']||0) - Number(a['Valor Desembolsado']||0); }).slice(0,14);
+      slide = pptxHeaderSlide(pres, { titulo:'Detalle de radicación', subtitulo:subtitulo + ' · Top ' + top.length + ' de ' + rowsFiltradas.length + ' registros por valor', pageLabel:pageLabel });
+      y = 1.62;
+      pptxTable(slide, y, ['Identificación','Asociado','Promotor','Valor','Oficina','Fecha','Línea'],
+        top.map(function(r){ return [ r['Identificación']||'', r['Asociado']||'', promotorDisplay(r['Promotor']), fmtM(Number(r['Valor Desembolsado']||0)), titleCase(r['OFICINA']||''), fmtFecha(r['Fec Liquidación']), r['Línea']||'' ]; }),
+        [1.55,2.65,1.75,1.15,2.15,1.15,2.05]);
+    }
+
+    pptxClosingSlide(pres, pageLabel);
+    await pres.writeFile({ fileName:'Informe_Colocacion_COOPEBIS.pptx' });
+  }catch(e){
+    console.error('Error generando PowerPoint (Colocación):', e);
+    alert('Ocurrió un error generando el PowerPoint. Intenta de nuevo.');
+  }finally{
+    pptxSetBtnLoading(btn, false);
+  }
+}
+
+async function generarPptxGestion(btn){
+  pptxSetBtnLoading(btn, true);
+  try{
+    await ensureLogoChip();
+    const pres = new PptxGenJS();
+    pres.layout = 'LAYOUT_WIDE';
+    pres.author = 'COOPEBIS'; pres.company = 'COOPEBIS';
+    pres.title = 'Estado de Situación · Gestión Externos';
+
+    const anio = document.getElementById('fGesAnio').value;
+    const mes = document.getElementById('fGesMes').value;
+    const asesorFiltro = document.getElementById('fGesAsesor').value;
+    const subtitulo = 'Filtros aplicados: Año ' + anio + ' · Mes ' + mes + (asesorFiltro!=='TODOS' ? ' · Asesor ' + asesorFiltro : ' · Todos los asesores');
+    const pageLabel = 'Gestión Externos';
+
+    pptxCoverSlide(pres, { eyebrow:'Equipo externo · Gestión', titulo:'Estado de Situación · Gestión Externos', subtitulo:subtitulo });
+
+    let slide = pptxHeaderSlide(pres, { titulo:'Resumen general', subtitulo:subtitulo, pageLabel:pageLabel });
+    let y = 1.62;
+    const kpiEls = Array.from(document.querySelectorAll('#kpiGes .kpi'));
+    const kpiItems = kpiEls.map(function(el,i){ return { label: el.querySelector('.kpi-label').textContent, value: el.querySelector('.kpi-value').textContent, bg: PPTX_KPI_BG[i%4], txt: PPTX_KPI_TXT[i%4] }; });
+    y = pptxKpiRow(slide, pres, y, kpiItems);
+    const narrativa = 'Este documento presenta el estado de situación de la gestión de radicación de los ejecutivos externos de COOPEBIS. Se prioriza la atención sobre las devoluciones registradas, seguidas de los créditos ya desembolsados, los que están listos para desembolso y los demás estados, con el detalle individual de cada asociado.';
+    y = pptxParagraph(slide, y, narrativa);
+
+    const rowsColoc = filtrarColocGestion();
+    const metaRowGes = getMetaRow(mes);
+    const metaEjecutivoGes = Number(metaRowGes['META COLOCACION EJECUTIVO']||0);
+    const statsExec = EXTERNOS.map(function(nombre){
+      const rc = rowsColoc.filter(function(r){ return promotorDisplay(r['Promotor'])===nombre; });
+      const valor = rc.reduce(function(s,r){ return s+Number(r['Valor Desembolsado']||0); },0);
+      const pct = metaEjecutivoGes ? valor/metaEjecutivoGes : 0;
+      return { nombre:nombre, valor:valor, creditos:rc.length, pct:pct };
+    }).sort(function(a,b){ return b.valor-a.valor; });
+
+    slide = pptxHeaderSlide(pres, { titulo:'Gestión ejecutivos externos', subtitulo:subtitulo, pageLabel:pageLabel });
+    y = 1.62; y = pptxSectionTitle(slide, pres, y, 'Desembolsado · Créditos · % Desembolso por ejecutivo', PPTX_C.primario);
+    pptxTable(slide, y, ['Ejecutivo','Desembolsado','Créditos','% Desembolso frente a meta'],
+      statsExec.map(function(e){ return [e.nombre, fmtM(e.valor), String(e.creditos), fmtPct(e.pct)]; }),
+      [4.15,3.1,2.4,2.8]);
+
+    slide = pptxHeaderSlide(pres, { titulo:'Desembolsado vs. pendiente por asesor', subtitulo:subtitulo, pageLabel:pageLabel });
+    y = 1.62; y = pptxSectionTitle(slide, pres, y, 'Desembolsado vs. pendiente por asesor', PPTX_C.turquesa);
+    y = pptxChartImageBlock(slide, y, 'barDesembolsoPendiente', 'El valor desembolsado se toma de la hoja Colocación; lo pendiente se toma del estado de cada crédito en la hoja BD, sin incluir anulados.');
+
+    slide = pptxHeaderSlide(pres, { titulo:'Tendencia mensual por ejecutivo', subtitulo:subtitulo, pageLabel:pageLabel });
+    y = 1.62; y = pptxSectionTitle(slide, pres, y, 'Radicado mensual por ejecutivo', PPTX_C.dorado);
+    y = pptxChartImageBlock(slide, y, 'lineGes', 'Evolución mes a mes del valor desembolsado por cada ejecutivo externo.');
+
+    slide = pptxHeaderSlide(pres, { titulo:'Ranking por total radicado', subtitulo:subtitulo, pageLabel:pageLabel });
+    y = 1.62; y = pptxSectionTitle(slide, pres, y, 'Ranking por total radicado', PPTX_C.comp1);
+    y = pptxChartImageBlock(slide, y, 'rankGes', 'Comparativo del valor total desembolsado por cada ejecutivo externo.');
+
+    slide = pptxHeaderSlide(pres, { titulo:'Estado de la base BD', subtitulo:subtitulo, pageLabel:pageLabel });
+    y = 1.62; y = pptxSectionTitle(slide, pres, y, 'Estado de la base BD y estados de crédito', PPTX_C.secundario);
+    if(charts.pieEstado){ slide.addImage({ data: charts.pieEstado.toBase64Image('image/png',1.0), x:0.45, y:y, w:6.0, h:4.2 }); }
+    if(charts.barEstados){ slide.addImage({ data: charts.barEstados.toBase64Image('image/png',1.0), x:6.75, y:y, w:6.15, h:4.2 }); }
+
+    const rowsInformeBase = DATA.bd.filter(function(r){
+      if(EXTERNOS.indexOf(asesorDisplayBD(r['ASESOR']))===-1) return false;
+      const d = r['FECHA'];
+      if(!(d instanceof Date)) return false;
+      if(anio!=='TODOS' && String(d.getFullYear())!==anio) return false;
+      if(mes!=='TODOS' && String(d.getMonth()+1)!==mes) return false;
+      if(asesorFiltro!=='TODOS' && asesorDisplayBD(r['ASESOR'])!==asesorFiltro) return false;
+      return true;
+    });
+    const ESTADO_PRIORIDAD = ['DEVOLUCION','DESEMBOLSADO','EN RECEPCION','EXTRAPRIMADO','ANULADO'];
+    const ESTADO_ETIQUETA = {'DEVOLUCION':'Devoluciones','DESEMBOLSADO':'Desembolsados','EN RECEPCION':'Listo para desembolso','EXTRAPRIMADO':'Extraprimados','ANULADO':'Anulados'};
+    const asesoresInforme = asesorFiltro!=='TODOS' ? [asesorFiltro] : EXTERNOS.slice().sort(function(a,b){
+      const va = rowsInformeBase.filter(function(r){ return asesorDisplayBD(r['ASESOR'])===a && (r['ESTADO']||'').toUpperCase()!=='ANULADO'; }).reduce(function(s,r){ return s+Number(r['VALOR']||0); },0);
+      const vb = rowsInformeBase.filter(function(r){ return asesorDisplayBD(r['ASESOR'])===b && (r['ESTADO']||'').toUpperCase()!=='ANULADO'; }).reduce(function(s,r){ return s+Number(r['VALOR']||0); },0);
+      return vb - va;
+    });
+    const filasSituacion = [];
+    asesoresInforme.forEach(function(nombreAsesor){
+      const rowsAsesorTodo = rowsInformeBase.filter(function(r){ return asesorDisplayBD(r['ASESOR'])===nombreAsesor; });
+      if(!rowsAsesorTodo.length) return;
+      const estadosPresentesAsesor = ESTADO_PRIORIDAD.filter(function(e){ return rowsAsesorTodo.some(function(r){ return (r['ESTADO']||'').toUpperCase()===e; }); });
+      const otrosEstados = Array.from(new Set(rowsAsesorTodo.map(function(r){ return (r['ESTADO']||'').toUpperCase(); }))).filter(function(e){ return e && ESTADO_PRIORIDAD.indexOf(e)===-1; });
+      estadosPresentesAsesor.concat(otrosEstados).forEach(function(estado){
+        const rowsEstado = rowsAsesorTodo.filter(function(r){ return (r['ESTADO']||'').toUpperCase()===estado; });
+        if(!rowsEstado.length) return;
+        const totalEstado = rowsEstado.reduce(function(s,r){ return s+Number(r['VALOR']||0); },0);
+        filasSituacion.push([nombreAsesor, ESTADO_ETIQUETA[estado]||titleCase(estado), String(rowsEstado.length), fmtM(totalEstado)]);
+      });
+    });
+    if(filasSituacion.length){
+      slide = pptxHeaderSlide(pres, { titulo:'Estado de situación por asesor', subtitulo:subtitulo + ' · Prioridad: devoluciones, desembolsados, listos para desembolso', pageLabel:pageLabel });
+      y = 1.62;
+      pptxTable(slide, y, ['Asesor','Estado','# Créditos','Valor'], filasSituacion.slice(0,16), [3.6,4.0,2.35,2.5]);
+    }
+
+    const rowsBDFiltro = filtrarBD();
+    if(rowsBDFiltro.length){
+      const top = rowsBDFiltro.slice(0,14);
+      slide = pptxHeaderSlide(pres, { titulo:'Base BD completa', subtitulo:subtitulo + ' · Mostrando ' + top.length + ' de ' + rowsBDFiltro.length + ' registros', pageLabel:pageLabel });
+      y = 1.62;
+      pptxTable(slide, y, ['Cédula','Nombre','Asesor','Estado','Valor','Entidad','Fecha'],
+        top.map(function(r){ return [ r['CEDULA']||'', titleCase(r['NOMBRE']||''), asesorDisplayBD(r['ASESOR']), r['ESTADO']||'', fmtM(Number(r['VALOR']||0)), titleCase(r['ENTIDAD']||''), fmtFecha(r['FECHA']) ]; }),
+        [1.55,2.6,1.9,1.55,1.5,1.75,1.6]);
+    }
+
+    pptxClosingSlide(pres, pageLabel);
+    await pres.writeFile({ fileName:'Estado_Situacion_Gestion_Externos_COOPEBIS.pptx' });
+  }catch(e){
+    console.error('Error generando PowerPoint (Gestión Externos):', e);
+    alert('Ocurrió un error generando el PowerPoint. Intenta de nuevo.');
+  }finally{
+    pptxSetBtnLoading(btn, false);
+  }
 }
 
 cargarDatos();
