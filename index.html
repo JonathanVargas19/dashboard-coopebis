@@ -2822,7 +2822,7 @@ function renderColocacion(){
   document.getElementById('kpiCol').innerHTML =
     kpiCard('Total desembolsado', fmtM(totalDesembolsado), 'Meta general: '+fmtM(metaGeneral), 0, totalDesembolsado, 'm') +
     kpiCard('# Créditos radicados', String(numCreditos), (oficinaSel==='TODOS'?'Todas las oficinas':etiquetaOficina), 1, numCreditos, 'int') +
-    kpiCard('% Cumplimiento', fmtPct(pctCumplGeneral), 'Según meta: '+fmtPct(pctCumplGeneralHoja), 3, pctCumplGeneral, 'pct');
+    kpiCard('% Cumplimiento', fmtPct(pctCumplGeneral), fmtM(totalDesembolsado)+' / '+fmtM(metaGeneral), 3, pctCumplGeneral, 'pct');
   animateKpiValues('kpiCol');
 
   document.getElementById('gaugeColTag').textContent = etiquetaOficina;
@@ -3016,7 +3016,7 @@ function renderGestion(){
   document.getElementById('kpiGes').innerHTML =
     kpiCard('Total desembolsado (Externos)', fmtM(totalDesembolsado), 'Meta externos: '+fmtM(metaExt), 0, totalDesembolsado, 'm') +
     kpiCard('# Créditos radicados', String(numCreditos), '', 2, numCreditos, 'int') +
-    kpiCard('% Cumplimiento externos', fmtPct(pctExt), 'Según meta: '+fmtPct(pctExtHoja), 1, pctExt, 'pct');
+    kpiCard('% Cumplimiento externos', fmtPct(pctExt), fmtM(totalDesembolsado)+' / '+fmtM(metaEjecutivoGes), 1, pctExt, 'pct');
   animateKpiValues('kpiGes');
 
   const metaEjecutivo = metaEjecutivoGes;
