@@ -44,7 +44,8 @@
     *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important;}
   }
   *{box-sizing:border-box;}
-  body{margin:0;font-family:'Poppins',sans-serif;background:var(--fondo);color:var(--texto);}
+  html{overflow-x:hidden;}
+  body{margin:0;font-family:'Poppins',sans-serif;background:var(--fondo);color:var(--texto);overflow-x:hidden;}
   h1,h2,h3,.font-display{font-family:var(--font-display),'Poppins',sans-serif;}
   .app{max-width:1440px;margin:0 auto;padding:18px 22px 40px;position:relative;transition:max-width .25s ease;}
   body.mobile .app{max-width:430px;}
@@ -56,6 +57,42 @@
   body.mobile canvas{max-height:190px;}
   body.mobile .toolbar{flex-direction:column;align-items:stretch;}
   body.mobile .signature{text-align:center;margin-bottom:6px;}
+
+  /* =========================================================
+     RESPONSIVO REAL — se activa solo con el ancho de pantalla,
+     sin depender del botón "Ver en móvil" (ese botón queda como
+     una vista previa aparte para probar desde escritorio).
+     ========================================================= */
+  @media (max-width:700px){
+    .app{max-width:100%;padding:12px 12px 32px;}
+    .topbar{position:static;top:auto;flex-direction:column;align-items:stretch;gap:10px;padding:12px;}
+    .logo-wrap{justify-content:center;}
+    .nav-btns{justify-content:center;}
+    .nav-btn{padding:8px 11px;font-size:11px;}
+    .right-actions{justify-content:center;}
+    .filters{flex-direction:column;align-items:stretch;}
+    .filter-group{width:100%;}
+    .filter-group select, .filter-group input{width:100%;}
+    .admin-toolbar{flex-direction:column;align-items:stretch;}
+    .toolbar{flex-direction:column;align-items:stretch;}
+    .kpi-row{grid-template-columns:1fr 1fr !important;gap:10px;}
+    .grid2, .grid3, .exec-row{grid-template-columns:1fr !important;}
+    .home-cards{grid-template-columns:1fr;}
+    .card > div[style*="height"]{height:220px !important;}
+    canvas{max-height:220px;}
+    .table-scroll{overflow-x:auto;max-width:100%;}
+    table{min-width:560px;}
+    .signature{text-align:center;margin-bottom:6px;}
+    .view-hero{padding:16px;gap:10px;}
+    .view-hero-icon{width:40px;height:40px;font-size:17px;border-radius:11px;}
+    .view-hero-text h2{font-size:15px;}
+    .view-hero-text p{font-size:10.5px;}
+    .brand-logo-img{max-width:260px;}
+    .fin-obj{font-size:18px !important;}
+    .home-hero h1{font-size:20px;}
+    .home-stats{gap:12px;}
+    .home-stat{padding:18px 20px;min-width:130px;}
+  }
 
   .signature{
     text-align:right;padding:18px 10px 4px;font-family:'Poppins',sans-serif;
@@ -2418,6 +2455,29 @@ try{
   Chart.defaults.set('plugins.datalabels', { display:true, color:'#081A22', font:{ family:"'Poppins'", size:10, weight:'600' } });
 }catch(e){ console.error('Chart.js no cargó correctamente:', e); }
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const MESES_LARGO = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+// Busca la fila de la hoja "METAS Y PORCENTAJES" correspondiente al mes filtrado (1-12).
+// Si el filtro es "TODOS", agrega las metas de todos los meses y promedia los % de cumplimiento de la hoja (solo como referencia).
+function getMetaRow(mesValue){
+  const rows = DATA.metasRows || [];
+  if(!rows.length) return {};
+  if(mesValue===undefined || mesValue==='TODOS'){
+    const agg = { 'META COLOCACION GENERAL':0, 'META COLOCACION EJECUTIVO':0, '%CUMPLIMIENTO GENERAL':0, '%CUMPLIMIENTO EXTERNOS':0 };
+    rows.forEach(function(r){
+      agg['META COLOCACION GENERAL'] += Number(r['META COLOCACION GENERAL']||0);
+      agg['META COLOCACION EJECUTIVO'] += Number(r['META COLOCACION EJECUTIVO']||0);
+    });
+    const validas = rows.filter(function(r){return Number(r['META COLOCACION GENERAL']||0)>0;});
+    if(validas.length){
+      agg['%CUMPLIMIENTO GENERAL'] = validas.reduce(function(s,r){return s+Number(r['%CUMPLIMIENTO GENERAL']||0);},0)/validas.length;
+      agg['%CUMPLIMIENTO EXTERNOS'] = validas.reduce(function(s,r){return s+Number(r['%CUMPLIMIENTO EXTERNOS']||0);},0)/validas.length;
+    }
+    return agg;
+  }
+  const nombreMes = MESES_LARGO[Number(mesValue)-1];
+  if(!nombreMes) return {};
+  return rows.find(function(r){ return (r['MES']||'').toString().trim().toLowerCase()===nombreMes.toLowerCase(); }) || {};
+}
 const CORP_COLORS = ['#0B6D75','#B49F16','#033D5C','#1E5960'];
 const fmtM = v => '$' + (v/1000000).toLocaleString('es-CO',{maximumFractionDigits:1}) + 'M';
 const fmtPct = v => (isFinite(v)? (v*100) : 0).toLocaleString('es-CO',{maximumFractionDigits:1}) + '%';
@@ -2670,6 +2730,7 @@ async function cargarDatos(){
     DATA.coloc = colocSheet ? trimKeys(XLSX.utils.sheet_to_json(colocSheet,{defval:''})) : [];
     COLOC_COL_LLAVE = null; COLOC_COL_FECHA_DESEMB = null; COLOC_COL_NOMBRE = null; COLOC_COL_CEDULA = null;
     const metasRows = metasSheet ? trimKeys(XLSX.utils.sheet_to_json(metasSheet,{defval:''})) : [];
+    DATA.metasRows = metasRows;
     DATA.metas = metasRows[0] || {};
     DATA.desMetas = desMetasSheet ? trimKeys(XLSX.utils.sheet_to_json(desMetasSheet,{defval:''})).filter(function(r){return r['OFICINA'];}) : [];
     DATA.ejecutivoMap = construirMapaEjecutivos(DATA.coloc);
@@ -2750,27 +2811,18 @@ function renderColocacion(){
 
   const totalDesembolsado = rows.reduce(function(s,r){return s+Number(r['Valor Desembolsado']||0);},0);
   const numCreditos = rows.length;
-  const metaGeneral = Number(DATA.metas['META COLOCACION GENERAL']||0);
-  const pctCumplGeneral = Number(DATA.metas['%CUMPLIMIENTO GENERAL']||0);
+  const mesSel = document.getElementById('fColMes').value;
+  const metaRow = getMetaRow(mesSel);
+  const metaGeneral = Number(metaRow['META COLOCACION GENERAL']||0);
+  const pctCumplGeneralHoja = Number(metaRow['%CUMPLIMIENTO GENERAL']||0);
+  const pctCumplGeneral = metaGeneral ? totalDesembolsado/metaGeneral : 0;
 
-  let valorOficina, metaOficina, etiquetaOficina;
-  if(oficinaSel==='TODOS'){
-    valorOficina = DATA.desMetas.reduce(function(s,r){return s+Number(r['VALOR DESEMBOLSADO']||0);},0);
-    metaOficina = DATA.desMetas.reduce(function(s,r){return s+Number(r['META']||0);},0);
-    etiquetaOficina = 'General (todas las oficinas)';
-  } else {
-    const desMetaRow = DATA.desMetas.find(function(r){return r['OFICINA']===oficinaSel;});
-    valorOficina = desMetaRow ? Number(desMetaRow['VALOR DESEMBOLSADO']||0) : 0;
-    metaOficina = desMetaRow ? Number(desMetaRow['META']||0) : 0;
-    etiquetaOficina = titleCase(oficinaSel);
-  }
-  const pctOficina = metaOficina ? valorOficina/metaOficina : 0;
+  const etiquetaOficina = oficinaSel==='TODOS' ? 'General (todas las oficinas)' : titleCase(oficinaSel);
 
   document.getElementById('kpiCol').innerHTML =
     kpiCard('Total desembolsado', fmtM(totalDesembolsado), 'Meta general: '+fmtM(metaGeneral), 0, totalDesembolsado, 'm') +
     kpiCard('# Créditos radicados', String(numCreditos), (oficinaSel==='TODOS'?'Todas las oficinas':etiquetaOficina), 1, numCreditos, 'int') +
-    kpiCard('% Cumplimiento meta global', fmtPct(pctCumplGeneral), '', 2, pctCumplGeneral, 'pct') +
-    kpiCard('% Cumplimiento — '+etiquetaOficina, fmtPct(pctOficina), fmtM(valorOficina)+' / '+fmtM(metaOficina), 3, pctOficina, 'pct');
+    kpiCard('% Cumplimiento', fmtPct(pctCumplGeneral), 'Según meta: '+fmtPct(pctCumplGeneralHoja), 3, pctCumplGeneral, 'pct');
   animateKpiValues('kpiCol');
 
   document.getElementById('gaugeColTag').textContent = etiquetaOficina;
@@ -2952,20 +3004,22 @@ function renderGestion(){
 
   const totalDesembolsado = rowsColoc.reduce(function(s,r){return s+Number(r['Valor Desembolsado']||0);},0);
   const numCreditos = rowsColoc.length;
-  const pctCumplGeneral = Number(DATA.metas['%CUMPLIMIENTO GENERAL']||0);
+  const mesSelGes = document.getElementById('fGesMes').value;
+  const metaRowGes = getMetaRow(mesSelGes);
   const desMetaExt = DATA.desMetas.find(function(r){return r['OFICINA']==='EXTERNOS';});
   const valorExt = desMetaExt? Number(desMetaExt['VALOR DESEMBOLSADO']||0): totalDesembolsado;
   const metaExt = desMetaExt? Number(desMetaExt['META']||0): 0;
-  const pctExt = metaExt? valorExt/metaExt : 0;
+  const metaEjecutivoGes = Number(metaRowGes['META COLOCACION EJECUTIVO']||0);
+  const pctExtHoja = Number(metaRowGes['%CUMPLIMIENTO EXTERNOS']||0);
+  const pctExt = metaEjecutivoGes ? totalDesembolsado/metaEjecutivoGes : 0;
 
   document.getElementById('kpiGes').innerHTML =
     kpiCard('Total desembolsado (Externos)', fmtM(totalDesembolsado), 'Meta externos: '+fmtM(metaExt), 0, totalDesembolsado, 'm') +
     kpiCard('# Créditos radicados', String(numCreditos), '', 2, numCreditos, 'int') +
-    kpiCard('% Cumplimiento meta global', fmtPct(pctCumplGeneral), '', 3, pctCumplGeneral, 'pct') +
-    kpiCard('% Cumplimiento externos', fmtPct(pctExt), fmtM(valorExt)+' / '+fmtM(metaExt), 1, pctExt, 'pct');
+    kpiCard('% Cumplimiento externos', fmtPct(pctExt), 'Según meta: '+fmtPct(pctExtHoja), 1, pctExt, 'pct');
   animateKpiValues('kpiGes');
 
-  const metaEjecutivo = Number(DATA.metas['META COLOCACION EJECUTIVO']||0);
+  const metaEjecutivo = metaEjecutivoGes;
   const colores = {'Leonela Bueno':'#0B6D75','Alejandro Contento':'#B49F16','Ingrid Pedraza':'#033D5C'};
   const apellidos = {'Leonela Bueno':'Bueno','Alejandro Contento':'Contento','Ingrid Pedraza':'Pedraza'};
   const stats = EXTERNOS.map(function(nombre){
