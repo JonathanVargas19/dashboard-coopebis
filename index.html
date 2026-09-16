@@ -897,16 +897,6 @@
         <input type="password" id="lockPwd" placeholder="Contraseña" style="width:100%;text-align:center;letter-spacing:3px;margin-bottom:14px;background:#F2F5F7;color:#011F2B;border:1px solid #D6DEE2;border-radius:8px;padding:11px 14px;font-family:'Poppins';font-size:13px;">
         <button id="btnEntrarLock" class="refresh-btn" style="width:100%;">Entrar</button>
         <div id="lockMsg" style="font-size:11.5px;color:#C6444C;margin-top:12px;min-height:16px;"></div>
-        <div id="toAdminLock" style="font-size:11px;color:#5c6b73;margin-top:16px;cursor:pointer;text-decoration:underline;">¿Eres el administrador? Ingresa aquí</div>
-      </div>
-
-      <div id="adminLockForm" style="display:none;">
-        <h1 style="font-size:16px;margin:0 0 6px;color:var(--azul-primario);">Acceso administrador</h1>
-        <p style="font-size:12px;color:#5c6b73;margin:0 0 22px;">Ingresa la contraseña de administrador.</p>
-        <input type="password" id="lockPwdAdmin" placeholder="Contraseña de administrador" style="width:100%;text-align:center;letter-spacing:2px;margin-bottom:14px;background:#F2F5F7;color:#011F2B;border:1px solid #D6DEE2;border-radius:8px;padding:11px 14px;font-family:'Poppins';font-size:13px;">
-        <button id="btnEntrarAdminLock" class="refresh-btn" style="width:100%;">Entrar</button>
-        <div id="lockMsgAdmin" style="font-size:11.5px;color:#C6444C;margin-top:12px;min-height:16px;"></div>
-        <div id="toUserLock" style="font-size:11px;color:#5c6b73;margin-top:16px;cursor:pointer;text-decoration:underline;">Volver al acceso normal</div>
       </div>
     </div>
   </div>
@@ -922,10 +912,7 @@
       <button class="nav-btn" data-view="home"><span class="nav-ic">⌂</span>Inicio</button>
       <button class="nav-btn" data-view="colocacion"><span class="nav-ic">◔</span>Base General / Colocación</button>
       <button class="nav-btn" data-view="gestion"><span class="nav-ic">◎</span>Gestión Externos</button>
-      <button class="nav-btn" data-view="admin" id="navAdmin" style="display:none;"><span class="nav-ic">▤</span>Panel Admin</button>
-      <button class="nav-btn" data-view="actualizaciones" id="navActualizaciones" style="display:none;"><span class="nav-ic">↻</span>Actualizaciones de Datos</button>
-      <button class="nav-btn" data-view="radicacion" id="navRadicacion" style="display:none;"><span class="nav-ic">✎</span>Radicación</button>
-      <button class="nav-btn" data-view="anticipos" id="navAnticipos" style="display:none;"><span class="nav-ic">◈</span>Anticipos</button>
+      <button class="nav-btn" data-view="actualizaciones" id="navActualizaciones"><span class="nav-ic">↻</span>Actualizaciones de Datos</button>
     </div>
     <div class="right-actions">
       <div style="position:relative;">
@@ -1006,6 +993,8 @@
       <div class="toolbar">
         <button class="refresh-btn" id="btnLimpiarCol">✕ Quitar filtros</button>
         <button class="refresh-btn" id="btnRefreshCol">↻ Actualizar datos</button>
+        <button class="refresh-btn" id="btnSubirArchivoDatos">⬆ Subir archivo (BD y Colocación)</button>
+        <input type="file" id="inputArchivoDatos" accept=".xlsx,.xlsm" style="display:none;">
         <button class="pdf-btn" id="btnPdfCol">⬇ Generar informe PDF</button>
         <button class="pptx-btn" id="btnPptxCol">◧ Generar PowerPoint</button>
         <span class="status" id="statusCol"></span>
@@ -1383,8 +1372,12 @@ function renderHomeStats(){
 }
 
 /* ===== Acceso: nombre + contraseña (usuarios) / contraseña admin — con Firebase para monitoreo en vivo ===== */
-const ACCESS_PASSWORD = "112101";
-const ADMIN_PASSWORD = "Johnalexvgs279*";
+const ACCESS_PASSWORD = "Coopebis2026";
+/* Política de seguridad: la contraseña de acceso debe renovarse el día 5 de cada mes.
+   Para renovarla, edita ACCESS_PASSWORD (nueva clave) y ACCESS_PASSWORD_VIGENTE_HASTA
+   (próxima fecha límite) aquí en el código y publica el cambio en GitHub. Solo quien
+   tiene acceso al repositorio puede hacer este cambio. */
+const ACCESS_PASSWORD_VIGENTE_HASTA = new Date('2026-10-05T00:00:00');
 
 // CONFIGURA AQUI los datos de tu proyecto de Firebase (gratis, ver LEEME.md)
 const firebaseConfig = {
@@ -1398,7 +1391,6 @@ const firebaseConfig = {
 let db = null;
 try{ firebase.initializeApp(firebaseConfig); db = firebase.firestore(); }catch(e){ console.error('Firebase no configurado:', e); }
 
-let ES_ADMIN = false;
 let miSessionToken = null;
 let miSessionUnsub = null;
 let sesionesUnsub = null;
@@ -1454,7 +1446,7 @@ async function cerrarSesionAjena(id){
 
 /* ============================================================
    RADICACIÓN (hoja BD) + ANTICIPOS — en línea con Firestore
-   Solo editable por el administrador (ES_ADMIN). La vista
+   Editable desde el acceso genérico. La vista
    "Gestión Externos" se alimenta en vivo desde DATA.bd, que a
    partir de ahora se llena con estos datos (ya no del .xlsm).
    ============================================================ */
@@ -1943,26 +1935,16 @@ document.getElementById('searchAnticipo').addEventListener('input', renderTablaA
 function mostrarApp(){
   document.getElementById('lockScreen').style.display='none';
   document.getElementById('appContent').style.display='block';
-  document.getElementById('navAdmin').style.display = ES_ADMIN ? 'inline-block' : 'none';
-  document.getElementById('navActualizaciones').style.display = ES_ADMIN ? 'inline-block' : 'none';
-  document.getElementById('navRadicacion').style.display = ES_ADMIN ? 'inline-block' : 'none';
-  document.getElementById('navAnticipos').style.display = ES_ADMIN ? 'inline-block' : 'none';
-  if(ES_ADMIN){ escucharSesiones(); escucharSolicitudesCredito(); poblarFiltroEstadoRadicacion(); }
-  // La Gestión Externos (hoja BD) ahora se alimenta en línea desde Firestore, la vean o no admins.
+  escucharSolicitudesCredito();
+  // La Gestión Externos (hoja BD) se alimenta en línea desde Firestore.
   escucharRadicacionesFirestore();
   escucharAnticiposFirestore();
 }
 function pedirAcceso(){
-  if(sessionStorage.getItem('coopebis_admin') === '1'){
-    ES_ADMIN = true;
-    mostrarApp();
-    return;
-  }
   const token = sessionStorage.getItem('coopebis_token');
   const unlocked = sessionStorage.getItem('coopebis_unlocked');
   if(token && unlocked === '1'){
     miSessionToken = token;
-    ES_ADMIN = false;
     escucharMiSesion(token);
     mostrarApp();
     return;
@@ -1971,20 +1953,15 @@ function pedirAcceso(){
   document.getElementById('appContent').style.display='none';
 }
 
-document.getElementById('toAdminLock').addEventListener('click', function(){
-  document.getElementById('userLockForm').style.display='none';
-  document.getElementById('adminLockForm').style.display='block';
-});
-document.getElementById('toUserLock').addEventListener('click', function(){
-  document.getElementById('adminLockForm').style.display='none';
-  document.getElementById('userLockForm').style.display='block';
-});
-
 document.getElementById('btnEntrarLock').addEventListener('click', async function(){
   const nombre = document.getElementById('lockNombre').value.trim();
   const val = document.getElementById('lockPwd').value;
   const msg = document.getElementById('lockMsg');
   if(!nombre){ msg.textContent = 'Escribe tu nombre completo.'; return; }
+  if(new Date() >= ACCESS_PASSWORD_VIGENTE_HASTA){
+    msg.textContent = 'La contraseña venció por política de seguridad (cambio obligatorio el día 5 de cada mes). Solicita la nueva clave al administrador del sistema.';
+    return;
+  }
   if(val !== ACCESS_PASSWORD){ msg.textContent = 'Contraseña incorrecta.'; return; }
   if(!db){ msg.textContent = 'Firebase no está configurado (ver LEEME.md).'; return; }
   msg.textContent = 'Ingresando…';
@@ -1994,7 +1971,6 @@ document.getElementById('btnEntrarLock').addEventListener('click', async functio
     sessionStorage.setItem('coopebis_token', token);
     sessionStorage.setItem('coopebis_unlocked','1');
     sessionStorage.setItem('coopebis_nombre', nombre);
-    ES_ADMIN = false;
     escucharMiSesion(token);
     mostrarApp();
   }catch(e){ msg.textContent = 'Error de conexión. Intenta de nuevo.'; }
@@ -2002,25 +1978,11 @@ document.getElementById('btnEntrarLock').addEventListener('click', async functio
 document.getElementById('lockPwd').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('btnEntrarLock').click(); });
 document.getElementById('lockNombre').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('btnEntrarLock').click(); });
 
-document.getElementById('btnEntrarAdminLock').addEventListener('click', function(){
-  const val = document.getElementById('lockPwdAdmin').value;
-  const msg = document.getElementById('lockMsgAdmin');
-  if(val !== ADMIN_PASSWORD){ msg.textContent = 'Contraseña de administrador incorrecta.'; return; }
-  sessionStorage.setItem('coopebis_admin','1');
-  ES_ADMIN = true;
-  mostrarApp();
-});
-document.getElementById('lockPwdAdmin').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('btnEntrarAdminLock').click(); });
-
 document.getElementById('btnBloquear').addEventListener('click', async function(){
-  if(ES_ADMIN){
-    sessionStorage.removeItem('coopebis_admin');
-  } else {
-    await cerrarMiSesionFirestore();
-    sessionStorage.removeItem('coopebis_token');
-    sessionStorage.removeItem('coopebis_unlocked');
-    sessionStorage.removeItem('coopebis_nombre');
-  }
+  await cerrarMiSesionFirestore();
+  sessionStorage.removeItem('coopebis_token');
+  sessionStorage.removeItem('coopebis_unlocked');
+  sessionStorage.removeItem('coopebis_nombre');
   location.reload();
 });
 /* ===== Formulario de crédito: firma, cálculos, envío y PDF ===== */
@@ -2642,7 +2604,7 @@ function formatearFechaDesembolsoValor(raw){
 }
 
 async function cruzarDesembolsosConColocacion(esCargaColocacion){
-  if(!ES_ADMIN || !db) return;
+  if(!db) return;
   if(!DATA.coloc.length || !window.RADICACIONES_CACHE) return;
   detectarColumnasColocacion();
   if(!COLOC_COL_LLAVE || !COLOC_COL_FECHA_DESEMB){
@@ -2726,6 +2688,41 @@ async function cruzarDesembolsosConColocacion(esCargaColocacion){
   }
 }
 
+async function procesarWorkbookDatos(wb, origenLabel){
+  const s1=document.getElementById('statusCol'), s2=document.getElementById('statusGes'), s3=document.getElementById('homeStatus');
+
+  // Hoja COLOCACION (siempre presente en el archivo de datos).
+  const colocSheet = wb.Sheets['COLOCACION'];
+  const metasSheet = wb.Sheets['METAS  Y PORCENTAJES'] || wb.Sheets['METAS Y PORCENTAJES'];
+  const desMetasSheet = wb.Sheets['DESEMBOLSO VS METAS'];
+
+  DATA.coloc = colocSheet ? trimKeys(XLSX.utils.sheet_to_json(colocSheet,{defval:''})) : [];
+  COLOC_COL_LLAVE = null; COLOC_COL_FECHA_DESEMB = null; COLOC_COL_NOMBRE = null; COLOC_COL_CEDULA = null;
+  const metasRows = metasSheet ? trimKeys(XLSX.utils.sheet_to_json(metasSheet,{defval:''})) : [];
+  DATA.metasRows = metasRows;
+  DATA.metas = metasRows[0] || {};
+  DATA.desMetas = desMetasSheet ? trimKeys(XLSX.utils.sheet_to_json(desMetasSheet,{defval:''})).filter(function(r){return r['OFICINA'];}) : [];
+  DATA.ejecutivoMap = construirMapaEjecutivos(DATA.coloc);
+
+  // Hoja BD: si el archivo subido la trae, se toma directamente (queda solo en el navegador,
+  // no se guarda en Firestore). Si no viene, la hoja BD sigue viniendo de Firestore como hasta ahora.
+  const bdSheet = wb.Sheets['BD'];
+  if(bdSheet){
+    DATA.bd = trimKeys(XLSX.utils.sheet_to_json(bdSheet,{defval:''}));
+  }
+
+  initColFilters();
+  renderColocacion();
+  if(DATA.bd.length) renderGestion();
+  await cruzarDesembolsosConColocacion(true);
+
+  const okMsg = (origenLabel||'Actualizado') + ' ' + new Date().toLocaleTimeString('es-CO');
+  if(s1){ s1.textContent=okMsg; s1.className='status ok'; }
+  if(s2){ s2.textContent=okMsg; s2.className='status ok'; }
+  if(s3) s3.textContent = 'Datos al día · ' + DATA.coloc.length + ' registros de colocación · ' + DATA.bd.length + ' registros en BD';
+  renderHomeStats();
+}
+
 async function cargarDatos(){
   const s1=document.getElementById('statusCol'), s2=document.getElementById('statusGes'), s3=document.getElementById('homeStatus');
   [s1,s2].forEach(function(s){ if(s){ s.textContent='Actualizando…'; s.className='status'; }});
@@ -2735,31 +2732,7 @@ async function cargarDatos(){
     if(!res.ok) throw new Error('No se encontró '+ARCHIVO+' en esta carpeta');
     const buffer = await res.arrayBuffer();
     const wb = XLSX.read(buffer, {type:'array', cellDates:true});
-
-    // La hoja BD ya no se lee de este archivo: desde ahora se administra en línea (Firestore),
-    // vía la sección Radicación del Panel Admin. Solo se necesita mantener actualizada la hoja COLOCACION.
-    const colocSheet = wb.Sheets['COLOCACION'];
-    const metasSheet = wb.Sheets['METAS  Y PORCENTAJES'] || wb.Sheets['METAS Y PORCENTAJES'];
-    const desMetasSheet = wb.Sheets['DESEMBOLSO VS METAS'];
-
-    DATA.coloc = colocSheet ? trimKeys(XLSX.utils.sheet_to_json(colocSheet,{defval:''})) : [];
-    COLOC_COL_LLAVE = null; COLOC_COL_FECHA_DESEMB = null; COLOC_COL_NOMBRE = null; COLOC_COL_CEDULA = null;
-    const metasRows = metasSheet ? trimKeys(XLSX.utils.sheet_to_json(metasSheet,{defval:''})) : [];
-    DATA.metasRows = metasRows;
-    DATA.metas = metasRows[0] || {};
-    DATA.desMetas = desMetasSheet ? trimKeys(XLSX.utils.sheet_to_json(desMetasSheet,{defval:''})).filter(function(r){return r['OFICINA'];}) : [];
-    DATA.ejecutivoMap = construirMapaEjecutivos(DATA.coloc);
-
-    initColFilters();
-    renderColocacion();
-    if(DATA.bd.length) renderGestion();
-    await cruzarDesembolsosConColocacion(true);
-
-    const okMsg = 'Actualizado ' + new Date().toLocaleTimeString('es-CO');
-    if(s1){ s1.textContent=okMsg; s1.className='status ok'; }
-    if(s2){ s2.textContent=okMsg; s2.className='status ok'; }
-    if(s3) s3.textContent = 'Datos al día · ' + DATA.coloc.length + ' registros de colocación · ' + DATA.bd.length + ' registros en BD (en línea)';
-    renderHomeStats();
+    await procesarWorkbookDatos(wb, 'Actualizado');
   }catch(err){
     const msg='Error: '+err.message;
     if(s1){ s1.textContent=msg; s1.className='status err'; }
@@ -2767,6 +2740,32 @@ async function cargarDatos(){
     if(s3) s3.textContent = msg;
   }
 }
+
+async function cargarDatosDesdeArchivoLocal(file){
+  const s1=document.getElementById('statusCol'), s2=document.getElementById('statusGes'), s3=document.getElementById('homeStatus');
+  [s1,s2].forEach(function(s){ if(s){ s.textContent='Procesando archivo…'; s.className='status'; }});
+  if(s3) s3.textContent='Procesando archivo subido…';
+  try{
+    const buffer = await file.arrayBuffer();
+    const wb = XLSX.read(buffer, {type:'array', cellDates:true});
+    await procesarWorkbookDatos(wb, 'Archivo cargado');
+  }catch(err){
+    const msg = 'Error leyendo el archivo: '+err.message+'. Si el archivo tiene contraseña, quítasela antes de subirlo.';
+    if(s1){ s1.textContent=msg; s1.className='status err'; }
+    if(s2){ s2.textContent=msg; s2.className='status err'; }
+    if(s3) s3.textContent = msg;
+    alert(msg);
+  }
+}
+
+document.getElementById('btnSubirArchivoDatos').addEventListener('click', function(){
+  document.getElementById('inputArchivoDatos').click();
+});
+document.getElementById('inputArchivoDatos').addEventListener('change', function(e){
+  const file = e.target.files && e.target.files[0];
+  if(file) cargarDatosDesdeArchivoLocal(file);
+  e.target.value = '';
+});
 
 /* ================= COLOCACIÓN ================= */
 function initColFilters(){
